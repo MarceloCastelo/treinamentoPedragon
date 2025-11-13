@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📚 Meus Cursos - ADTSA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <style>
+        /* Gradiente de fundo */
+        .gradient-bg {
+            background: linear-gradient(135deg, #032B56 0%, #1e40af 50%, #1e3a8a 100%);
+        }
+        
+        /* Efeito hover nos cards */
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Animação de entrada das seções */
+        .section-animate {
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Barra de progresso */
+        .progress-bar {
+            background: linear-gradient(90deg, #3b82f6 0%, #06b6d4 100%);
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen flex flex-col">
+    <!-- Navbar -->
+    <div id="navbar-container"></div>
+
+    <!-- Conteúdo Principal -->
+    <main class="flex-grow container mx-auto px-4 py-8 mt-16">
+        <!-- Cabeçalho da Página -->
+        <div class="section-animate mb-8">
+            <div class="bg-gradient-to-r from-blue-600/30 to-cyan-600/30 rounded-2xl p-8 border border-white/20">
+                <div class="flex items-center mb-4">
+                    <div class="bg-white/20 p-4 rounded-xl mr-4">
+                        <ion-icon name="book-outline" class="text-4xl text-white"></ion-icon>
+                    </div>
+                    <div>
+                        <h1 class="text-4xl font-bold text-white mb-2">Meus Cursos</h1>
+                        <p class="text-blue-200">Continue de onde parou</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de Cursos em Progresso -->
+        {% if courses %}
+            <div class="section-animate grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for course in courses %}
+                    <div class="card-hover bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-xl p-6 border border-white/20 backdrop-blur-sm">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="bg-white/20 p-3 rounded-lg">
+                                <ion-icon name="play-circle-outline" class="text-3xl text-white"></ion-icon>
+                            </div>
+                            <span class="bg-blue-500/30 px-3 py-1 rounded-full text-xs text-blue-200 font-semibold">
+                                {{ course.progress_percent|round|int }}%
+                            </span>
+                        </div>
+
+                        <h3 class="text-xl font-bold text-white mb-2">{{ course.formatted_name }}</h3>
+                        <p class="text-blue-300 text-sm mb-4">
+                            <ion-icon name="folder-outline" class="align-middle"></ion-icon>
+                            {{ course.topic }}
+                        </p>
+
+                        <!-- Barra de Progresso -->
+                        <div class="bg-white/10 rounded-full h-2 mb-4 overflow-hidden">
+                            <div class="progress-bar h-full rounded-full" style="width: {{ course.progress_percent|round|int }}%"></div>
+                        </div>
+
+                        <!-- Informações de Tempo -->
+                        <div class="text-sm text-blue-200 mb-4">
+                            <p>
+                                <ion-icon name="time-outline" class="align-middle"></ion-icon>
+                                {{ (course.current_time / 60)|round(1) }} / {{ (course.duration / 60)|round(1) }} min
+                            </p>
+                            {% if course.last_watched %}
+                                <p class="text-xs text-blue-300 mt-1">
+                                    Última vez: {{ course.last_watched[:10] }}
+                                </p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Botão Continuar -->
+                        <a href="{{ url_for('auth.topic_detail', topic_name=course.topic) }}" 
+                           class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg text-center transition-all hover:scale-105">
+                            <ion-icon name="play" class="align-middle mr-2"></ion-icon>
+                            Continuar Assistindo
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <!-- Mensagem quando não há cursos em progresso -->
+            <div class="section-animate text-center py-16">
+                <div class="bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-2xl p-12 border border-white/20 backdrop-blur-sm max-w-2xl mx-auto">
+                    <div class="bg-white/20 p-6 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+                        <ion-icon name="book-outline" class="text-6xl text-white"></ion-icon>
+                    </div>
+                    <h2 class="text-3xl font-bold text-white mb-4">Nenhum curso em progresso</h2>
+                    <p class="text-blue-200 mb-8">
+                        Comece a assistir suas aulas e elas aparecerão aqui para você continuar de onde parou.
+                    </p>
+                    <a href="{{ url_for('auth.home') }}" 
+                       class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-xl transition-all hover:scale-105">
+                        <ion-icon name="search-outline" class="text-xl mr-2"></ion-icon>
+                        Explorar Cursos
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-12 bg-blue-900/50 border-t border-blue-700/50">
+        <div class="container mx-auto px-4 py-6">
+            <div class="text-center text-blue-300 text-sm">
+                <p>© 2025 GRUPO ADTSA - Divisão de Concessionárias. Todos os direitos reservados.</p>
+                <p class="mt-2">Plataforma de Treinamento Corporativo</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/navbar.js') }}"></script>
+</body>
+</html>

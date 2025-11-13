@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔐 Login - ADTSA Sistema</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <style>
+        /* Gradiente de fundo */
+        .gradient-bg {
+            background: linear-gradient(135deg, #032B56 0%, #1e40af 50%, #1e3a8a 100%);
+        }
+        
+        /* Animação de entrada */
+        .login-animate {
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Efeito hover nos cards */
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Efeito de foco nos inputs */
+        .input-focus:focus {
+            outline: none;
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+        }
+        
+        /* Animação do botão */
+        .btn-animate {
+            transition: all 0.3s ease;
+        }
+        
+        .btn-animate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
+        }
+        
+        .btn-animate:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen flex items-center justify-center px-4">
+    <!-- Container Principal -->
+    <div class="w-full max-w-md login-animate">
+        <!-- Card de Login -->
+        <div class="bg-gradient-to-br from-blue-600/30 to-purple-600/30 rounded-2xl p-8 border border-white/20 backdrop-blur-lg card-hover">
+            <!-- Header com Ícone -->
+            <div class="text-center mb-8">
+                <div class="inline-flex flex-col items-center">
+                    <div class="bg-gradient-to-r from-blue-500/20 to-cyan-500/20 p-6 rounded-2xl border border-white/20 mb-4">
+                        <div class="bg-white/10 p-5 rounded-xl">
+                            <ion-icon name="shield-checkmark-outline" class="text-5xl text-blue-300"></ion-icon>
+                        </div>
+                    </div>
+                    <h1 class="text-3xl font-bold text-white mb-2">Sistema ADTSA</h1>
+                    <p class="text-blue-200 text-sm">Faça login com suas credenciais do Active Directory</p>
+                </div>
+            </div>
+            
+            <!-- Mensagens Flash -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="mb-6 rounded-xl p-4 border backdrop-blur-sm
+                            {% if category == 'error' %}
+                                bg-red-500/20 border-red-400/30 text-red-200
+                            {% elif category == 'success' %}
+                                bg-green-500/20 border-green-400/30 text-green-200
+                            {% else %}
+                                bg-blue-500/20 border-blue-400/30 text-blue-200
+                            {% endif %}">
+                            <div class="flex items-center">
+                                <ion-icon name="
+                                    {% if category == 'error' %}alert-circle-outline
+                                    {% elif category == 'success' %}checkmark-circle-outline
+                                    {% else %}information-circle-outline
+                                    {% endif %}" class="text-2xl mr-3"></ion-icon>
+                                <span class="font-medium">{{ message }}</span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <!-- Formulário -->
+            <form method="POST" class="space-y-6">
+                <!-- Campo Usuário -->
+                <div>
+                    <label for="username" class="block text-white font-semibold mb-2 flex items-center">
+                        <ion-icon name="person-outline" class="text-blue-300 mr-2"></ion-icon>
+                        Usuário
+                    </label>
+                    <div class="relative">
+                        <input 
+                            type="text" 
+                            id="username" 
+                            name="username" 
+                            placeholder="Digite seu usuário" 
+                            required 
+                            autofocus
+                            value="{{ request.form.username or '' }}"
+                            class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-200/50 input-focus transition-all"
+                        >
+                    </div>
+                </div>
+                
+                <!-- Campo Senha -->
+                <div>
+                    <label for="password" class="block text-white font-semibold mb-2 flex items-center">
+                        <ion-icon name="lock-closed-outline" class="text-blue-300 mr-2"></ion-icon>
+                        Senha
+                    </label>
+                    <div class="relative">
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            placeholder="Digite sua senha" 
+                            required
+                            class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-200/50 input-focus transition-all"
+                        >
+                    </div>
+                </div>
+                
+                <!-- Botão Entrar -->
+                <button 
+                    type="submit" 
+                    class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center btn-animate">
+                    <ion-icon name="log-in-outline" class="text-xl mr-2"></ion-icon>
+                    Entrar
+                </button>
+            </form>
+            
+            <!-- Informações Adicionais -->
+            <div class="mt-8 pt-6 border-t border-white/20">
+                <div class="flex items-center justify-center text-blue-200 text-sm">
+                    <ion-icon name="information-circle-outline" class="text-lg mr-2"></ion-icon>
+                    <span>Use suas credenciais corporativas</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="mt-6 text-center">
+            <p class="text-white/80 text-sm">© 2025 GRUPO ADTSA - Divisão de Concessionárias</p>
+            <p class="text-white/60 text-xs mt-1">Sistema de Autenticação Corporativa</p>
+        </div>
+    </div>
+</body>
+</html>

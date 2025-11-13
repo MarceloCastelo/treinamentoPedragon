@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>👤 Meu Perfil - ADTSA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <style>
+        /* Gradiente de fundo */
+        .gradient-bg {
+            background: linear-gradient(135deg, #032B56 0%, #1e40af 50%, #1e3a8a 100%);
+        }
+        
+        /* Efeito hover nos cards */
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Animação de entrada das seções */
+        .section-animate {
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Animação do círculo de progresso */
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring-circle {
+            transition: stroke-dashoffset 0.5s ease;
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen flex flex-col">
+    <!-- Navbar -->
+    <div id="navbar-container"></div>
+
+    <!-- Conteúdo Principal -->
+    <main class="flex-grow container mx-auto px-4 py-8 mt-16">
+        <!-- Cabeçalho do Perfil -->
+        <div class="section-animate mb-8">
+            <div class="bg-gradient-to-r from-blue-600/30 to-purple-600/30 rounded-2xl p-8 border border-white/20">
+                <div class="flex flex-col md:flex-row items-center md:items-start gap-6">
+                    <!-- Avatar -->
+                    <div class="bg-white/20 p-6 rounded-full">
+                        <ion-icon name="person" class="text-6xl text-white"></ion-icon>
+                    </div>
+                    
+                    <!-- Informações do Usuário -->
+                    <div class="flex-grow text-center md:text-left">
+                        <h1 class="text-4xl font-bold text-white mb-2">{{ user.displayName }}</h1>
+                        <p class="text-blue-200 text-lg mb-4">{{ user.sAMAccountName }}</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                            {% if user.mail %}
+                            <div class="bg-white/10 rounded-xl p-4 border border-white/20">
+                                <div class="flex items-center">
+                                    <ion-icon name="mail-outline" class="text-2xl mr-3 text-blue-300"></ion-icon>
+                                    <div>
+                                        <p class="text-sm text-blue-200">E-mail</p>
+                                        <p class="font-semibold text-white">{{ user.mail }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if user.department %}
+                            <div class="bg-white/10 rounded-xl p-4 border border-white/20">
+                                <div class="flex items-center">
+                                    <ion-icon name="business-outline" class="text-2xl mr-3 text-blue-300"></ion-icon>
+                                    <div>
+                                        <p class="text-sm text-blue-200">Departamento</p>
+                                        <p class="font-semibold text-white">{{ user.department }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estatísticas de Progresso -->
+        <div class="section-animate mb-8">
+            <h2 class="text-2xl font-bold text-white mb-6 flex items-center">
+                <ion-icon name="stats-chart-outline" class="mr-3 text-blue-300"></ion-icon>
+                Minhas Estatísticas
+            </h2>
+
+            <!-- Grid de Estatísticas -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <!-- Total de Vídeos -->
+                <div class="card-hover bg-gradient-to-br from-blue-600/20 to-cyan-600/20 rounded-xl p-6 border border-white/20">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="bg-blue-500/30 p-3 rounded-lg">
+                            <ion-icon name="videocam-outline" class="text-3xl text-blue-300"></ion-icon>
+                        </div>
+                        <span class="text-4xl font-bold text-white">{{ stats.total_videos }}</span>
+                    </div>
+                    <p class="text-blue-200 font-semibold">Total de Vídeos</p>
+                </div>
+
+                <!-- Vídeos Assistidos -->
+                <div class="card-hover bg-gradient-to-br from-green-600/20 to-emerald-600/20 rounded-xl p-6 border border-white/20">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="bg-green-500/30 p-3 rounded-lg">
+                            <ion-icon name="checkmark-circle-outline" class="text-3xl text-green-300"></ion-icon>
+                        </div>
+                        <span class="text-4xl font-bold text-white">{{ stats.videos_watched }}</span>
+                    </div>
+                    <p class="text-green-200 font-semibold">Vídeos Assistidos</p>
+                </div>
+
+                <!-- Em Progresso -->
+                <div class="card-hover bg-gradient-to-br from-yellow-600/20 to-orange-600/20 rounded-xl p-6 border border-white/20">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="bg-yellow-500/30 p-3 rounded-lg">
+                            <ion-icon name="time-outline" class="text-3xl text-yellow-300"></ion-icon>
+                        </div>
+                        <span class="text-4xl font-bold text-white">{{ stats.videos_in_progress }}</span>
+                    </div>
+                    <p class="text-yellow-200 font-semibold">Em Progresso</p>
+                </div>
+
+                <!-- Pendentes -->
+                <div class="card-hover bg-gradient-to-br from-red-600/20 to-pink-600/20 rounded-xl p-6 border border-white/20">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="bg-red-500/30 p-3 rounded-lg">
+                            <ion-icon name="alert-circle-outline" class="text-3xl text-red-300"></ion-icon>
+                        </div>
+                        <span class="text-4xl font-bold text-white">{{ stats.videos_pending }}</span>
+                    </div>
+                    <p class="text-red-200 font-semibold">Vídeos Pendentes</p>
+                </div>
+            </div>
+
+            <!-- Progresso Geral -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Círculo de Progresso -->
+                <div class="bg-gradient-to-br from-purple-600/20 to-indigo-600/20 rounded-xl p-8 border border-white/20">
+                    <h3 class="text-xl font-bold text-white mb-6 text-center">Progresso de Conclusão</h3>
+                    <div class="flex flex-col items-center">
+                        <div class="relative w-48 h-48 mb-4">
+                            <svg class="w-full h-full progress-ring" viewBox="0 0 200 200">
+                                <!-- Background circle -->
+                                <circle cx="100" cy="100" r="80" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="20"/>
+                                <!-- Progress circle -->
+                                <circle cx="100" cy="100" r="80" fill="none" 
+                                        stroke="url(#gradient)" 
+                                        stroke-width="20" 
+                                        stroke-linecap="round"
+                                        class="progress-ring-circle"
+                                        stroke-dasharray="502.65"
+                                        stroke-dashoffset="{{ 502.65 - (502.65 * stats.completion_percent / 100) }}"/>
+                                <defs>
+                                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:1" />
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <span class="text-5xl font-bold text-white">{{ stats.completion_percent|int }}%</span>
+                            </div>
+                        </div>
+                        <p class="text-blue-200 text-center">
+                            Você completou <span class="font-bold text-white">{{ stats.videos_watched }}</span> 
+                            de <span class="font-bold text-white">{{ stats.total_videos }}</span> vídeos
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Informações Adicionais -->
+                <div class="bg-gradient-to-br from-cyan-600/20 to-blue-600/20 rounded-xl p-8 border border-white/20">
+                    <h3 class="text-xl font-bold text-white mb-6">Resumo do Aprendizado</h3>
+                    
+                    <div class="space-y-4">
+                        <!-- Tempo Total -->
+                        <div class="flex items-center justify-between p-4 bg-white/10 rounded-lg">
+                            <div class="flex items-center">
+                                <ion-icon name="hourglass-outline" class="text-2xl text-cyan-300 mr-3"></ion-icon>
+                                <span class="text-blue-200">Tempo Total Assistido</span>
+                            </div>
+                            <span class="text-xl font-bold text-white">{{ stats.total_watch_time }}</span>
+                        </div>
+
+                        <!-- Total de Tópicos -->
+                        <div class="flex items-center justify-between p-4 bg-white/10 rounded-lg">
+                            <div class="flex items-center">
+                                <ion-icon name="folder-outline" class="text-2xl text-cyan-300 mr-3"></ion-icon>
+                                <span class="text-blue-200">Tópicos Disponíveis</span>
+                            </div>
+                            <span class="text-xl font-bold text-white">{{ stats.total_topics }}</span>
+                        </div>
+
+                        <!-- Progresso -->
+                        <div class="flex items-center justify-between p-4 bg-white/10 rounded-lg">
+                            <div class="flex items-center">
+                                <ion-icon name="trophy-outline" class="text-2xl text-cyan-300 mr-3"></ion-icon>
+                                <span class="text-blue-200">Nível de Conclusão</span>
+                            </div>
+                            <span class="text-xl font-bold text-white">
+                                {% if stats.completion_percent >= 75 %}
+                                    Avançado
+                                {% elif stats.completion_percent >= 50 %}
+                                    Intermediário
+                                {% elif stats.completion_percent >= 25 %}
+                                    Iniciante
+                                {% else %}
+                                    Começando
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Botão de Ação -->
+                    <div class="mt-6">
+                        <a href="{{ url_for('auth.home') }}" 
+                           class="block w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold py-3 px-4 rounded-lg text-center transition-all hover:scale-105">
+                            <ion-icon name="play-circle" class="align-middle mr-2"></ion-icon>
+                            Continuar Aprendendo
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-12 bg-blue-900/50 border-t border-blue-700/50">
+        <div class="container mx-auto px-4 py-6">
+            <div class="text-center text-blue-300 text-sm">
+                <p>© 2025 GRUPO ADTSA - Divisão de Concessionárias. Todos os direitos reservados.</p>
+                <p class="mt-2">Plataforma de Treinamento Corporativo</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/navbar.js') }}"></script>
+</body>
+</html>
