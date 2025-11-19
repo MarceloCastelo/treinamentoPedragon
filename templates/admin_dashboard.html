@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Administrativo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #032B56 0%, #1e40af 50%, #1e3a8a 100%);
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .section-animate {
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen flex flex-col" data-is-admin="true">
+    <!-- Navbar -->
+    <div id="navbar-container"></div>
+
+    <!-- Conteúdo Principal -->
+    <main class="flex-grow container mx-auto px-4 py-8 mt-16">
+        <!-- Header -->
+        <section class="section-animate mb-8">
+            <div class="text-center mb-6">
+                <div class="inline-flex flex-col items-center">
+                    <div class="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 p-6 rounded-2xl border border-white/20 mb-4">
+                        <div class="bg-white/10 p-5 rounded-xl">
+                            <ion-icon name="analytics-outline" class="text-5xl text-yellow-300"></ion-icon>
+                        </div>
+                    </div>
+                    <h1 class="text-4xl font-bold text-white">Análise de Desempenho</h1>
+                    <p class="text-blue-200 mt-2 text-lg">Métricas estratégicas de treinamento e desenvolvimento</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- KPIs Estratégicos -->
+        <section class="section-animate mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Total de Usuários -->
+                <div class="bg-gradient-to-br from-green-500/20 to-emerald-600/20 backdrop-blur-sm rounded-xl p-6 border border-green-400/30 card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-green-200 text-sm mb-1">Total de Usuários</p>
+                            <p class="text-4xl font-bold text-white">{{ stats.total_users }}</p>
+                            <p class="text-xs text-green-300 mt-1">{{ stats.active_users }} ativos</p>
+                        </div>
+                        <div class="bg-green-500/30 rounded-xl p-3">
+                            <ion-icon name="people-outline" class="text-3xl text-green-200"></ion-icon>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Taxa de Conclusão -->
+                <div class="bg-gradient-to-br from-blue-500/20 to-indigo-600/20 backdrop-blur-sm rounded-xl p-6 border border-blue-400/30 card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-blue-200 text-sm mb-1">Taxa de Conclusão</p>
+                            <p class="text-4xl font-bold text-white">{{ stats.completion_rate }}%</p>
+                            <p class="text-xs text-blue-300 mt-1">{{ stats.total_completions }} módulos finalizados</p>
+                        </div>
+                        <div class="bg-blue-500/30 rounded-xl p-3">
+                            <ion-icon name="checkmark-done-outline" class="text-3xl text-blue-200"></ion-icon>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Média -->
+                <div class="bg-gradient-to-br from-yellow-500/20 to-amber-600/20 backdrop-blur-sm rounded-xl p-6 border border-yellow-400/30 card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-yellow-200 text-sm mb-1">Performance Média</p>
+                            <p class="text-4xl font-bold text-white">{{ stats.avg_exam_score }}</p>
+                            <p class="text-xs text-yellow-300 mt-1">{{ stats.exam_pass_rate }}% de aprovação</p>
+                        </div>
+                        <div class="bg-yellow-500/30 rounded-xl p-3">
+                            <ion-icon name="trophy-outline" class="text-3xl text-yellow-200"></ion-icon>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ROI de Treinamento -->
+                <div class="bg-gradient-to-br from-purple-500/20 to-violet-600/20 backdrop-blur-sm rounded-xl p-6 border border-purple-400/30 card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-purple-200 text-sm mb-1">Horas de Conteúdo</p>
+                            <p class="text-4xl font-bold text-white">{{ stats.total_watch_hours }}h</p>
+                            <p class="text-xs text-purple-300 mt-1">{{ stats.total_modules }} módulos disponíveis</p>
+                        </div>
+                        <div class="bg-purple-500/30 rounded-xl p-3">
+                            <ion-icon name="time-outline" class="text-3xl text-purple-200"></ion-icon>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Insights e Alertas Críticos -->
+        <section class="section-animate mb-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Gargalos Identificados -->
+                <div class="bg-gradient-to-br from-red-500/20 to-orange-500/20 backdrop-blur-sm rounded-xl p-6 border border-red-400/30">
+                    <h3 class="text-xl font-bold text-white mb-4 flex items-center">
+                        <ion-icon name="warning-outline" class="mr-2 text-red-300"></ion-icon>
+                        Pontos de Atenção
+                    </h3>
+                    <div class="space-y-3">
+                        {% for bottleneck in stats.bottlenecks %}
+                        <div class="bg-white/10 rounded-lg p-3 border border-red-400/20">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-semibold text-red-200">{{ bottleneck.sector }}</p>
+                                    <p class="text-sm text-gray-300 mt-1">{{ bottleneck.issue }}</p>
+                                </div>
+                                <span class="bg-red-500/30 text-red-200 px-3 py-1 rounded-full text-xs font-semibold">
+                                    {{ bottleneck.count }} reprovações
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Oportunidades de Melhoria -->
+                <div class="bg-gradient-to-br from-green-500/20 to-teal-500/20 backdrop-blur-sm rounded-xl p-6 border border-green-400/30">
+                    <h3 class="text-xl font-bold text-white mb-4 flex items-center">
+                        <ion-icon name="bulb-outline" class="mr-2 text-green-300"></ion-icon>
+                        Oportunidades
+                    </h3>
+                    <div class="space-y-3">
+                        {% for opportunity in stats.opportunities %}
+                        <div class="bg-white/10 rounded-lg p-3 border border-green-400/20">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-semibold text-green-200">{{ opportunity.title }}</p>
+                                    <p class="text-sm text-gray-300 mt-1">{{ opportunity.description }}</p>
+                                </div>
+                                <span class="bg-green-500/30 text-green-200 px-3 py-1 rounded-full text-xs font-semibold">
+                                    +{{ opportunity.impact }}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Ações Rápidas -->
+        <section class="section-animate">
+            <div class="bg-gradient-to-r from-indigo-600/30 to-purple-600/30 rounded-2xl p-8 border border-white/20">
+                <h2 class="text-2xl font-bold text-white mb-6 flex items-center">
+                    <ion-icon name="flash-outline" class="mr-2"></ion-icon>
+                    Ações Rápidas
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <a href="{{ url_for('admin.reports') }}" class="block p-6 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 hover:bg-white/20 transition card-hover">
+                        <ion-icon name="people-outline" class="text-3xl text-blue-300 mb-2"></ion-icon>
+                        <p class="font-semibold text-white text-lg">Ver Todos os Usuários</p>
+                        <p class="text-sm text-blue-200">Lista detalhada de progresso</p>
+                    </a>
+                    <a href="{{ url_for('admin.reports') }}" class="block p-6 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 hover:bg-white/20 transition card-hover">
+                        <ion-icon name="document-text-outline" class="text-3xl text-green-300 mb-2"></ion-icon>
+                        <p class="font-semibold text-white text-lg">Relatórios Detalhados</p>
+                        <p class="text-sm text-green-200">Por empresa, depto e marca</p>
+                    </a>
+                    <a href="{{ url_for('video.home') }}" class="block p-6 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 hover:bg-white/20 transition card-hover">
+                        <ion-icon name="play-circle-outline" class="text-3xl text-purple-300 mb-2"></ion-icon>
+                        <p class="font-semibold text-white text-lg">Gerenciar Conteúdo</p>
+                        <p class="text-sm text-purple-200">Vídeos e módulos</p>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/navbar.js') }}"></script>
+
+</body>
+</html>

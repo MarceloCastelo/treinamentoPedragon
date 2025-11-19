@@ -1,4 +1,67 @@
-function createNavbar() {
+function createAdminNavbar() {
+    return `
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-[#032B56] border-b border-yellow-600">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <!-- Logo/Brand -->
+                    <div class="flex-shrink-0">
+                        <a href="/admin/dashboard" class="flex items-center">
+                            <img src="/static/images/logos/ADTSA - BRANCA.png" alt="ADTSA" class="h-6 w-auto">
+                            <span class="ml-3 text-yellow-300 text-sm font-semibold">ADMIN</span>
+                        </a>
+                    </div>
+                    
+                    <!-- Desktop Navigation -->
+                    <div class="hidden md:block">
+                        <div class="ml-10 flex items-baseline space-x-4">
+                            <a href="/admin/dashboard" class="nav-link px-3 py-2 text-sm font-medium text-white hover:text-yellow-200 hover:bg-blue-700 rounded-md transition-colors duration-200">
+                                <ion-icon name="analytics-outline" class="text-lg align-middle mr-1"></ion-icon>
+                                Dashboard
+                            </a>
+                            <a href="/admin/reports" class="nav-link px-3 py-2 text-sm font-medium text-white hover:text-yellow-200 hover:bg-blue-700 rounded-md transition-colors duration-200">
+                                <ion-icon name="document-text-outline" class="text-lg align-middle mr-1"></ion-icon>
+                                Relatórios Detalhados
+                            </a>
+                            <a href="/auth/logout" class="nav-link px-3 py-2 text-sm font-medium text-white hover:text-blue-200 hover:bg-red-700 rounded-md transition-colors duration-200">
+                                <ion-icon name="log-out-outline" class="text-lg align-middle mr-1"></ion-icon>
+                                Sair
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Mobile menu button -->
+                    <div class="md:hidden">
+                        <button id="navbar-hamburger" class="inline-flex items-center justify-center p-2 rounded-md text-white hover:text-yellow-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-yellow-500 transition-colors duration-200" aria-expanded="false">
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile menu -->
+            <div id="navbar-mobile-menu" class="md:hidden hidden bg-[#032B56] border-b border-yellow-600">
+                <div class="px-2 pt-2 pb-3 space-y-1">
+                    <a href="/admin/dashboard" class="nav-link block px-3 py-2 text-base font-medium text-white hover:text-yellow-200 hover:bg-blue-700 rounded-md transition-colors duration-200">
+                        <ion-icon name="analytics-outline" class="text-lg align-middle mr-1"></ion-icon>
+                        Dashboard
+                    </a>
+                    <a href="/admin/reports" class="nav-link block px-3 py-2 text-base font-medium text-white hover:text-yellow-200 hover:bg-blue-700 rounded-md transition-colors duration-200">
+                        <ion-icon name="document-text-outline" class="text-lg align-middle mr-1"></ion-icon>
+                        Relatórios Detalhados
+                    </a>
+                    <a href="/auth/logout" class="nav-link block px-3 py-2 text-base font-medium text-white hover:text-blue-200 hover:bg-red-700 rounded-md transition-colors duration-200">
+                        <ion-icon name="log-out-outline" class="text-lg align-middle mr-1"></ion-icon>
+                        Sair
+                    </a>
+                </div>
+            </div>
+        </nav>
+    `;
+}
+
+function createUserNavbar() {
     return `
     <nav class="fixed top-0 left-0 right-0 z-50 bg-[#032B56] border-b border-blue-800">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -16,10 +79,10 @@ function createNavbar() {
                             <a href="/" class="nav-link px-3 py-2 text-sm font-medium text-white hover:text-blue-200 hover:bg-blue-700 rounded-md transition-colors duration-200">
                                 Home
                             </a>
-                            <a href="/auth/my-courses" class="nav-link px-3 py-2 text-sm font-medium text-white hover:text-blue-200 hover:bg-blue-700 rounded-md transition-colors duration-200">
+                            <a href="/my-courses" class="nav-link px-3 py-2 text-sm font-medium text-white hover:text-blue-200 hover:bg-blue-700 rounded-md transition-colors duration-200">
                                 Meus Cursos
                             </a>
-                            <a href="/auth/profile" class="nav-link px-3 py-2 text-sm font-medium text-white hover:text-blue-200 hover:bg-blue-700 rounded-md transition-colors duration-200">
+                            <a href="/profile" class="nav-link px-3 py-2 text-sm font-medium text-white hover:text-blue-200 hover:bg-blue-700 rounded-md transition-colors duration-200">
                                 Meu Perfil
                             </a>
                             <a href="/auth/logout" class="nav-link px-3 py-2 text-sm font-medium text-white hover:text-blue-200 hover:bg-red-700 rounded-md transition-colors duration-200">
@@ -45,10 +108,10 @@ function createNavbar() {
                     <a href="/" class="nav-link block px-3 py-2 text-base font-medium text-white hover:text-blue-200 hover:bg-blue-700 rounded-md transition-colors duration-200">
                         Home
                     </a>
-                    <a href="/auth/my-courses" class="nav-link block px-3 py-2 text-base font-medium text-white hover:text-blue-200 hover:bg-blue-700 rounded-md transition-colors duration-200">
+                    <a href="/my-courses" class="nav-link block px-3 py-2 text-base font-medium text-white hover:text-blue-200 hover:bg-blue-700 rounded-md transition-colors duration-200">
                         Meus Cursos
                     </a>
-                    <a href="/auth/profile" class="nav-link block px-3 py-2 text-base font-medium text-white hover:text-blue-200 hover:bg-blue-700 rounded-md transition-colors duration-200">
+                    <a href="/profile" class="nav-link block px-3 py-2 text-base font-medium text-white hover:text-blue-200 hover:bg-blue-700 rounded-md transition-colors duration-200">
                         Meu Perfil
                     </a>
                     <a href="/auth/logout" class="nav-link block px-3 py-2 text-base font-medium text-white hover:text-blue-200 hover:bg-red-700 rounded-md transition-colors duration-200">
@@ -58,6 +121,14 @@ function createNavbar() {
             </div>
         </nav>
     `;
+}
+
+function createNavbar() {
+    // Verificar se usuário é admin
+    const isAdmin = document.body.dataset.isAdmin === 'true';
+    
+    // Retornar navbar apropriada
+    return isAdmin ? createAdminNavbar() : createUserNavbar();
 }
 
 function initNavbar() {

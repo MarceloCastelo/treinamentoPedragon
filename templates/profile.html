@@ -47,36 +47,143 @@
         .progress-ring-circle {
             transition: stroke-dashoffset 0.5s ease;
         }
+
+        /* Estilos do Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #032B56 0%, #1e40af 100%);
+            margin: auto;
+            padding: 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 1rem;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: white;
+        }
+
+        /* Força dropdowns a abrirem para baixo */
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1.5em;
+            padding-right: 3rem;
+        }
+
+        /* Remove scrollbar do modal para evitar conflito com dropdowns */
+        .modal-content {
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-content form {
+            max-height: none;
+        }
     </style>
 </head>
-<body class="gradient-bg min-h-screen flex flex-col">
+<body class="gradient-bg min-h-screen flex flex-col" data-is-admin="{{ session.get('is_admin', False)|lower }}">
     <!-- Navbar -->
     <div id="navbar-container"></div>
 
     <!-- Conteúdo Principal -->
-    <main class="flex-grow container mx-auto px-4 py-8 mt-16">
+    <main class="flex-grow container mx-auto px-4 py-6 mt-20 max-w-7xl">
+        <!-- Alerta se perfil incompleto -->
+        {% if not (additional_data.empresa and additional_data.marca and additional_data.unidade and additional_data.setor and additional_data.cargo) %}
+        <div class="section-animate mb-6">
+            <div class="bg-gradient-to-r from-yellow-600/30 to-orange-600/30 rounded-2xl p-6 border border-yellow-500/50">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                    <ion-icon name="warning" class="text-4xl text-yellow-300 flex-shrink-0"></ion-icon>
+                    <div class="flex-grow">
+                        <h3 class="text-lg font-bold text-white mb-1">Complete seu Perfil</h3>
+                        <p class="text-yellow-100 text-sm">
+                            É necessário preencher todas as informações adicionais para acessar os vídeos de treinamento.
+                        </p>
+                    </div>
+                    <button onclick="openModal()" class="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-2.5 rounded-lg transition-all flex items-center text-sm font-semibold whitespace-nowrap">
+                        <ion-icon name="create-outline" class="mr-2 text-lg"></ion-icon>
+                        Completar Agora
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Cabeçalho do Perfil -->
-        <div class="section-animate mb-8">
-            <div class="bg-gradient-to-r from-blue-600/30 to-purple-600/30 rounded-2xl p-8 border border-white/20">
+        <section class="section-animate mb-6">
+            <div class="bg-gradient-to-r from-blue-600/30 to-purple-600/30 rounded-2xl p-6 md:p-8 border border-white/20">
                 <div class="flex flex-col md:flex-row items-center md:items-start gap-6">
                     <!-- Avatar -->
-                    <div class="bg-white/20 p-6 rounded-full">
-                        <ion-icon name="person" class="text-6xl text-white"></ion-icon>
+                    <div class="bg-white/20 p-5 rounded-full flex-shrink-0">
+                        <ion-icon name="person" class="text-5xl md:text-6xl text-white"></ion-icon>
                     </div>
                     
                     <!-- Informações do Usuário -->
-                    <div class="flex-grow text-center md:text-left">
-                        <h1 class="text-4xl font-bold text-white mb-2">{{ user.displayName }}</h1>
-                        <p class="text-blue-200 text-lg mb-4">{{ user.sAMAccountName }}</p>
+                    <div class="flex-grow w-full text-center md:text-left">
+                        <h1 class="text-3xl md:text-4xl font-bold text-white mb-2">{{ user.displayName }}</h1>
+                        <p class="text-blue-200 text-base md:text-lg mb-6">{{ user.sAMAccountName }}</p>
                         
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                        <!-- Dados do Active Directory -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {% if user.mail %}
                             <div class="bg-white/10 rounded-xl p-4 border border-white/20">
-                                <div class="flex items-center">
-                                    <ion-icon name="mail-outline" class="text-2xl mr-3 text-blue-300"></ion-icon>
-                                    <div>
-                                        <p class="text-sm text-blue-200">E-mail</p>
-                                        <p class="font-semibold text-white">{{ user.mail }}</p>
+                                <div class="flex items-center gap-3">
+                                    <ion-icon name="mail-outline" class="text-2xl text-blue-300 flex-shrink-0"></ion-icon>
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-xs text-blue-200 mb-0.5">E-mail</p>
+                                        <p class="font-semibold text-white text-sm truncate">{{ user.mail }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -84,11 +191,23 @@
                             
                             {% if user.department %}
                             <div class="bg-white/10 rounded-xl p-4 border border-white/20">
-                                <div class="flex items-center">
-                                    <ion-icon name="business-outline" class="text-2xl mr-3 text-blue-300"></ion-icon>
-                                    <div>
-                                        <p class="text-sm text-blue-200">Departamento</p>
-                                        <p class="font-semibold text-white">{{ user.department }}</p>
+                                <div class="flex items-center gap-3">
+                                    <ion-icon name="business-outline" class="text-2xl text-blue-300 flex-shrink-0"></ion-icon>
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-xs text-blue-200 mb-0.5">Departamento</p>
+                                        <p class="font-semibold text-white text-sm truncate">{{ user.department }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if user.title %}
+                            <div class="bg-white/10 rounded-xl p-4 border border-white/20">
+                                <div class="flex items-center gap-3">
+                                    <ion-icon name="briefcase-outline" class="text-2xl text-blue-300 flex-shrink-0"></ion-icon>
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-xs text-blue-200 mb-0.5">Cargo (AD)</p>
+                                        <p class="font-semibold text-white text-sm truncate">{{ user.title }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -97,69 +216,178 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Estatísticas de Progresso -->
-        <div class="section-animate mb-8">
-            <h2 class="text-2xl font-bold text-white mb-6 flex items-center">
-                <ion-icon name="stats-chart-outline" class="mr-3 text-blue-300"></ion-icon>
-                Minhas Estatísticas
-            </h2>
-
-            <!-- Grid de Estatísticas -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <!-- Total de Vídeos -->
-                <div class="card-hover bg-gradient-to-br from-blue-600/20 to-cyan-600/20 rounded-xl p-6 border border-white/20">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="bg-blue-500/30 p-3 rounded-lg">
-                            <ion-icon name="videocam-outline" class="text-3xl text-blue-300"></ion-icon>
+        <!-- Seção de Informações Adicionais -->
+        {% if additional_data.empresa or additional_data.marca or additional_data.unidade or additional_data.setor or additional_data.cargo %}
+        <section class="section-animate mb-6">
+            <div class="bg-gradient-to-r from-cyan-600/30 to-blue-600/30 rounded-2xl p-6 md:p-8 border border-white/20">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+                    <h2 class="text-2xl font-bold text-white flex items-center">
+                        <div class="bg-gradient-to-br from-cyan-500 to-blue-600 p-3 rounded-xl mr-3 shadow-lg">
+                            <ion-icon name="information-circle" class="text-3xl text-white"></ion-icon>
                         </div>
-                        <span class="text-4xl font-bold text-white">{{ stats.total_videos }}</span>
-                    </div>
-                    <p class="text-blue-200 font-semibold">Total de Vídeos</p>
+                        Informações Adicionais
+                    </h2>
+                    <button onclick="openModal()" class="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white px-5 py-2.5 rounded-lg transition-all flex items-center justify-center sm:justify-start text-sm font-semibold shadow-lg hover:shadow-xl hover:scale-105">
+                        <ion-icon name="create-outline" class="mr-2 text-lg"></ion-icon>
+                        Editar
+                    </button>
                 </div>
-
-                <!-- Vídeos Assistidos -->
-                <div class="card-hover bg-gradient-to-br from-green-600/20 to-emerald-600/20 rounded-xl p-6 border border-white/20">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="bg-green-500/30 p-3 rounded-lg">
-                            <ion-icon name="checkmark-circle-outline" class="text-3xl text-green-300"></ion-icon>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {% if additional_data.empresa %}
+                    <div class="bg-white/5 rounded-lg p-3 flex items-start gap-3">
+                        <ion-icon name="business" class="text-cyan-300 text-xl flex-shrink-0 mt-0.5"></ion-icon>
+                        <div class="min-w-0 flex-1">
+                            <span class="text-cyan-200 text-xs block mb-1">Empresa</span>
+                            <span class="text-white font-semibold text-sm break-words">{{ additional_data.empresa }}</span>
                         </div>
-                        <span class="text-4xl font-bold text-white">{{ stats.videos_watched }}</span>
                     </div>
-                    <p class="text-green-200 font-semibold">Vídeos Assistidos</p>
-                </div>
-
-                <!-- Em Progresso -->
-                <div class="card-hover bg-gradient-to-br from-yellow-600/20 to-orange-600/20 rounded-xl p-6 border border-white/20">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="bg-yellow-500/30 p-3 rounded-lg">
-                            <ion-icon name="time-outline" class="text-3xl text-yellow-300"></ion-icon>
+                    {% endif %}
+                    
+                    {% if additional_data.marca %}
+                    <div class="bg-white/5 rounded-lg p-3 flex items-start gap-3">
+                        <ion-icon name="pricetag" class="text-cyan-300 text-xl flex-shrink-0 mt-0.5"></ion-icon>
+                        <div class="min-w-0 flex-1">
+                            <span class="text-cyan-200 text-xs block mb-1">Marca</span>
+                            <span class="text-white font-semibold text-sm break-words">{{ additional_data.marca }}</span>
                         </div>
-                        <span class="text-4xl font-bold text-white">{{ stats.videos_in_progress }}</span>
                     </div>
-                    <p class="text-yellow-200 font-semibold">Em Progresso</p>
-                </div>
-
-                <!-- Pendentes -->
-                <div class="card-hover bg-gradient-to-br from-red-600/20 to-pink-600/20 rounded-xl p-6 border border-white/20">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="bg-red-500/30 p-3 rounded-lg">
-                            <ion-icon name="alert-circle-outline" class="text-3xl text-red-300"></ion-icon>
+                    {% endif %}
+                    
+                    {% if additional_data.unidade %}
+                    <div class="bg-white/5 rounded-lg p-3 flex items-start gap-3">
+                        <ion-icon name="layers" class="text-cyan-300 text-xl flex-shrink-0 mt-0.5"></ion-icon>
+                        <div class="min-w-0 flex-1">
+                            <span class="text-cyan-200 text-xs block mb-1">Unidade</span>
+                            <span class="text-white font-semibold text-sm break-words">{{ additional_data.unidade }}</span>
                         </div>
-                        <span class="text-4xl font-bold text-white">{{ stats.videos_pending }}</span>
                     </div>
-                    <p class="text-red-200 font-semibold">Vídeos Pendentes</p>
+                    {% endif %}
+                    
+                    {% if additional_data.setor %}
+                    <div class="bg-white/5 rounded-lg p-3 flex items-start gap-3">
+                        <ion-icon name="location" class="text-cyan-300 text-xl flex-shrink-0 mt-0.5"></ion-icon>
+                        <div class="min-w-0 flex-1">
+                            <span class="text-cyan-200 text-xs block mb-1">Setor</span>
+                            <span class="text-white font-semibold text-sm break-words">{{ additional_data.setor }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if additional_data.cargo %}
+                    <div class="bg-white/5 rounded-lg p-3 flex items-start gap-3">
+                        <ion-icon name="person-circle" class="text-cyan-300 text-xl flex-shrink-0 mt-0.5"></ion-icon>
+                        <div class="min-w-0 flex-1">
+                            <span class="text-cyan-200 text-xs block mb-1">Cargo</span>
+                            <span class="text-white font-semibold text-sm break-words">{{ additional_data.cargo }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
+        </section>
+        {% else %}
+        <!-- Se não houver dados adicionais, mostrar card para adicionar -->
+        <section class="section-animate mb-6">
+            <div class="bg-gradient-to-r from-gray-600/20 to-gray-700/20 rounded-2xl p-6 md:p-8 border border-white/20">
+                <div class="text-center py-6">
+                    <div class="bg-gray-600/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <ion-icon name="information-circle-outline" class="text-4xl text-gray-300"></ion-icon>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">Complete suas Informações</h3>
+                    <p class="text-gray-300 mb-6 max-w-md mx-auto text-sm">
+                        Adicione informações sobre empresa, marca, unidade, setor e cargo
+                    </p>
+                    <button onclick="openModal()" class="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-3 rounded-lg transition-all flex items-center justify-center mx-auto font-semibold shadow-lg hover:shadow-xl hover:scale-105">
+                        <ion-icon name="add-circle-outline" class="mr-2 text-xl"></ion-icon>
+                        Adicionar Informações
+                    </button>
+                </div>
+            </div>
+        </section>
+        {% endif %}
 
-            <!-- Progresso Geral -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Círculo de Progresso -->
-                <div class="bg-gradient-to-br from-purple-600/20 to-indigo-600/20 rounded-xl p-8 border border-white/20">
-                    <h3 class="text-xl font-bold text-white mb-6 text-center">Progresso de Conclusão</h3>
-                    <div class="flex flex-col items-center">
-                        <div class="relative w-48 h-48 mb-4">
+        <!-- Grid: Cursos Selecionados e Progresso de Conclusão -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <!-- Seção de Cursos Selecionados -->
+            {% if selected_courses %}
+            <section class="section-animate">
+                <div class="bg-gradient-to-r from-indigo-600/30 to-purple-600/30 rounded-2xl p-6 border border-white/20 shadow-2xl h-full flex flex-col">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+                        <h2 class="text-xl font-bold text-white flex items-center">
+                            <div class="bg-gradient-to-br from-indigo-500 to-purple-600 p-2.5 rounded-xl mr-3 shadow-lg">
+                                <ion-icon name="school-outline" class="text-2xl text-white"></ion-icon>
+                            </div>
+                            Meus Cursos de Interesse
+                        </h2>
+                        <button onclick="openCoursesModal()" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-4 py-2 rounded-lg transition-all flex items-center justify-center sm:justify-start text-sm font-semibold shadow-lg hover:shadow-xl hover:scale-105 whitespace-nowrap">
+                            <ion-icon name="create-outline" class="mr-2"></ion-icon>
+                            Editar
+                        </button>
+                    </div>
+                    
+                    <div class="flex-1 overflow-y-auto max-h-[400px] space-y-3 mb-4">
+                        {% for course in selected_courses %}
+                        <a href="{{ url_for('video.topic_detail', topic_name=course) }}" 
+                           class="group bg-gradient-to-br from-white/10 to-white/5 rounded-xl p-4 border border-white/20 hover:border-indigo-400/50 transition-all card-hover cursor-pointer block">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-gradient-to-br from-indigo-500/40 to-purple-500/40 p-2.5 rounded-lg flex-shrink-0 group-hover:from-indigo-500/60 group-hover:to-purple-500/60 transition-all">
+                                    <ion-icon name="book-outline" class="text-xl text-indigo-200 group-hover:text-white transition-colors"></ion-icon>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="text-white font-semibold text-sm mb-1 break-words group-hover:text-indigo-200 transition-colors">{{ course }}</h3>
+                                    <div class="flex items-center text-xs text-indigo-300 group-hover:text-indigo-200 transition-colors">
+                                        <ion-icon name="play-circle-outline" class="mr-1"></ion-icon>
+                                        Clique para iniciar
+                                    </div>
+                                </div>
+                                <ion-icon name="arrow-forward-circle-outline" class="text-2xl text-indigo-300 group-hover:text-white group-hover:translate-x-1 transition-all flex-shrink-0"></ion-icon>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mt-auto p-3 bg-gradient-to-r from-indigo-600/30 to-purple-600/30 rounded-xl border border-indigo-500/40">
+                        <p class="text-sm text-white font-semibold flex items-center">
+                            <ion-icon name="information-circle" class="text-lg mr-2"></ion-icon>
+                            {{ selected_courses|length }} {{ 'Curso Selecionado' if selected_courses|length == 1 else 'Cursos Selecionados' }}
+                        </p>
+                    </div>
+                </div>
+            </section>
+            {% else %}
+            <!-- Caso não tenha cursos selecionados -->
+            <section class="section-animate">
+                <div class="bg-gradient-to-r from-gray-600/20 to-gray-700/20 rounded-2xl p-6 border border-white/20 h-full flex flex-col justify-center">
+                    <div class="text-center py-8">
+                        <div class="bg-gray-600/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <ion-icon name="school-outline" class="text-4xl text-gray-300"></ion-icon>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">Nenhum curso selecionado</h3>
+                        <p class="text-gray-300 mb-6 text-sm">
+                            Selecione os cursos que você deseja fazer
+                        </p>
+                        <button onclick="openCoursesModal()" class="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-3 rounded-lg transition-all inline-flex items-center font-semibold shadow-lg hover:shadow-xl hover:scale-105">
+                            <ion-icon name="add-circle-outline" class="mr-2 text-xl"></ion-icon>
+                            Selecionar Cursos
+                        </button>
+                    </div>
+                </div>
+            </section>
+            {% endif %}
+
+            <!-- Progresso de Conclusão -->
+            <section class="section-animate">
+                <div class="bg-gradient-to-br from-purple-600/20 to-indigo-600/20 rounded-2xl p-6 border border-white/20 h-full flex flex-col">
+                    <h3 class="text-xl font-bold text-white mb-6 flex items-center">
+                        <div class="bg-gradient-to-br from-purple-500 to-indigo-600 p-2.5 rounded-xl mr-3 shadow-lg">
+                            <ion-icon name="trending-up-outline" class="text-2xl text-white"></ion-icon>
+                        </div>
+                        Progresso de Conclusão
+                    </h3>
+                    <div class="flex-1 flex flex-col items-center justify-center">
+                        <div class="relative w-40 h-40 mb-4">
                             <svg class="w-full h-full progress-ring" viewBox="0 0 200 200">
                                 <!-- Background circle -->
                                 <circle cx="100" cy="100" r="80" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="20"/>
@@ -182,68 +410,405 @@
                                 <span class="text-5xl font-bold text-white">{{ stats.completion_percent|int }}%</span>
                             </div>
                         </div>
-                        <p class="text-blue-200 text-center">
+                        <p class="text-blue-200 text-center text-sm mb-6">
                             Você completou <span class="font-bold text-white">{{ stats.videos_watched }}</span> 
                             de <span class="font-bold text-white">{{ stats.total_videos }}</span> vídeos
                         </p>
                     </div>
-                </div>
 
-                <!-- Informações Adicionais -->
-                <div class="bg-gradient-to-br from-cyan-600/20 to-blue-600/20 rounded-xl p-8 border border-white/20">
-                    <h3 class="text-xl font-bold text-white mb-6">Resumo do Aprendizado</h3>
-                    
-                    <div class="space-y-4">
-                        <!-- Tempo Total -->
-                        <div class="flex items-center justify-between p-4 bg-white/10 rounded-lg">
-                            <div class="flex items-center">
-                                <ion-icon name="hourglass-outline" class="text-2xl text-cyan-300 mr-3"></ion-icon>
-                                <span class="text-blue-200">Tempo Total Assistido</span>
-                            </div>
-                            <span class="text-xl font-bold text-white">{{ stats.total_watch_time }}</span>
-                        </div>
-
-                        <!-- Total de Tópicos -->
-                        <div class="flex items-center justify-between p-4 bg-white/10 rounded-lg">
-                            <div class="flex items-center">
-                                <ion-icon name="folder-outline" class="text-2xl text-cyan-300 mr-3"></ion-icon>
-                                <span class="text-blue-200">Tópicos Disponíveis</span>
-                            </div>
-                            <span class="text-xl font-bold text-white">{{ stats.total_topics }}</span>
-                        </div>
-
-                        <!-- Progresso -->
-                        <div class="flex items-center justify-between p-4 bg-white/10 rounded-lg">
-                            <div class="flex items-center">
-                                <ion-icon name="trophy-outline" class="text-2xl text-cyan-300 mr-3"></ion-icon>
-                                <span class="text-blue-200">Nível de Conclusão</span>
-                            </div>
-                            <span class="text-xl font-bold text-white">
-                                {% if stats.completion_percent >= 75 %}
-                                    Avançado
-                                {% elif stats.completion_percent >= 50 %}
-                                    Intermediário
-                                {% elif stats.completion_percent >= 25 %}
-                                    Iniciante
-                                {% else %}
-                                    Começando
-                                {% endif %}
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- Botão de Ação -->
-                    <div class="mt-6">
-                        <a href="{{ url_for('auth.home') }}" 
-                           class="block w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold py-3 px-4 rounded-lg text-center transition-all hover:scale-105">
-                            <ion-icon name="play-circle" class="align-middle mr-2"></ion-icon>
-                            Continuar Aprendendo
+                    <div class="mt-auto">
+                        <a href="{{ url_for('video.home') }}" 
+                           class="block w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold py-3 px-4 rounded-lg text-center transition-all hover:scale-105 flex items-center justify-center">
+                            <ion-icon name="play-circle" class="text-xl mr-2"></ion-icon>
+                            Continuar Assistindo
                         </a>
                     </div>
                 </div>
+            </section>
+        </div>
+
+        <!-- Estatísticas de Progresso -->
+        <section class="section-animate mb-6">
+            <h2 class="text-2xl font-bold text-white mb-4 flex items-center">
+                <ion-icon name="stats-chart-outline" class="mr-3 text-3xl text-blue-300"></ion-icon>
+                Minhas Estatísticas
+            </h2>
+
+            <!-- Grid de Estatísticas -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <!-- Total de Vídeos -->
+                <div class="card-hover bg-gradient-to-br from-blue-600/20 to-cyan-600/20 rounded-xl p-5 border border-white/20">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="bg-blue-500/30 p-2.5 rounded-lg">
+                            <ion-icon name="videocam-outline" class="text-2xl text-blue-300"></ion-icon>
+                        </div>
+                        <span class="text-3xl md:text-4xl font-bold text-white">{{ stats.total_videos }}</span>
+                    </div>
+                    <p class="text-blue-200 font-semibold text-sm">Total de Vídeos</p>
+                </div>
+
+                <!-- Vídeos Assistidos -->
+                <div class="card-hover bg-gradient-to-br from-green-600/20 to-emerald-600/20 rounded-xl p-5 border border-white/20">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="bg-green-500/30 p-2.5 rounded-lg">
+                            <ion-icon name="checkmark-circle-outline" class="text-2xl text-green-300"></ion-icon>
+                        </div>
+                        <span class="text-3xl md:text-4xl font-bold text-white">{{ stats.videos_watched }}</span>
+                    </div>
+                    <p class="text-green-200 font-semibold text-sm">Cursos Assistidos</p>
+                </div>
+
+                <!-- Em Progresso -->
+                <div class="card-hover bg-gradient-to-br from-yellow-600/20 to-orange-600/20 rounded-xl p-5 border border-white/20">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="bg-yellow-500/30 p-2.5 rounded-lg">
+                            <ion-icon name="time-outline" class="text-2xl text-yellow-300"></ion-icon>
+                        </div>
+                        <span class="text-3xl md:text-4xl font-bold text-white">{{ stats.videos_in_progress }}</span>
+                    </div>
+                    <p class="text-yellow-200 font-semibold text-sm">Em Progresso</p>
+                </div>
+
+                <!-- Pendentes -->
+                <div class="card-hover bg-gradient-to-br from-red-600/20 to-pink-600/20 rounded-xl p-5 border border-white/20">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="bg-red-500/30 p-2.5 rounded-lg">
+                            <ion-icon name="alert-circle-outline" class="text-2xl text-red-300"></ion-icon>
+                        </div>
+                        <span class="text-3xl md:text-4xl font-bold text-white">{{ stats.videos_pending }}</span>
+                    </div>
+                    <p class="text-red-200 font-semibold text-sm">Vídeos Pendentes</p>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Seção de Notas das Provas -->
+        {% if exam_scores %}
+        <section class="section-animate mb-6">
+            <div class="bg-gradient-to-r from-purple-600/30 to-pink-600/30 rounded-2xl p-6 md:p-8 border border-white/20">
+                <h2 class="text-2xl font-bold text-white mb-6 flex items-center">
+                    <ion-icon name="document-text-outline" class="mr-3 text-3xl text-purple-300"></ion-icon>
+                    Notas das Provas
+                </h2>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {% for exam in exam_scores %}
+                    <div class="bg-white/5 rounded-xl p-5 border border-white/10 hover:bg-white/10 transition-all card-hover">
+                        <div class="flex items-start justify-between mb-3 gap-2">
+                            <h3 class="text-white font-semibold text-sm flex-1 break-words">{{ exam.modulo }}</h3>
+                            <span class="px-2.5 py-1 rounded-full text-xs font-bold {{ 'bg-green-500/30 text-green-300' if exam.aprovado else 'bg-red-500/30 text-red-300' }} whitespace-nowrap">
+                                {{ 'APROVADO' if exam.aprovado else 'REPROVADO' }}
+                            </span>
+                        </div>
+                        
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <p class="text-2xl md:text-3xl font-bold {{ 'text-green-400' if exam.aprovado else 'text-red-400' }}">
+                                    {{ "%.1f"|format(exam.nota) }}%
+                                </p>
+                                <p class="text-xs text-gray-400">Melhor nota</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-white font-semibold text-lg">{{ exam.tentativas }}/2</p>
+                                <p class="text-xs text-gray-400">Tentativas</p>
+                            </div>
+                        </div>
+                        
+                        <a href="{{ url_for('exam.exam_result', topic_name=exam.modulo) }}" 
+                           class="text-sm text-blue-300 hover:text-blue-200 flex items-center transition-colors">
+                            Ver detalhes
+                            <ion-icon name="arrow-forward-outline" class="ml-1 text-base"></ion-icon>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+        {% endif %}
+    </main>
+
+    <!-- Modal de Edição -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="p-6 border-b border-white/20">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl font-bold text-white flex items-center">
+                        <ion-icon name="create-outline" class="mr-2"></ion-icon>
+                        Editar Informações Adicionais
+                    </h2>
+                    <span class="close" onclick="closeModal()">&times;</span>
+                </div>
+            </div>
+
+            <div class="p-6">
+                <!-- Mensagens Flash -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="mb-4 p-3 rounded-lg {% if category == 'success' %}bg-green-500/20 border border-green-400/50 text-green-200{% elif category == 'warning' %}bg-yellow-500/20 border border-yellow-400/50 text-yellow-200{% else %}bg-red-500/20 border border-red-400/50 text-red-200{% endif %}">
+                                <div class="flex items-center">
+                                    <ion-icon name="{% if category == 'success' %}checkmark-circle{% elif category == 'warning' %}warning{% else %}alert-circle{% endif %}" class="text-xl mr-2"></ion-icon>
+                                    <p class="text-sm">{{ message }}</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <form method="POST" action="{{ url_for('user.update_profile') }}" class="space-y-4">
+                    <!-- Empresa -->
+                    <div>
+                        <label for="modal_empresa" class="block text-sm font-semibold text-blue-200 mb-2">
+                            <ion-icon name="business" class="align-middle mr-1"></ion-icon>
+                            Empresa <span class="text-red-400">*</span>
+                        </label>
+                        <select id="modal_empresa" 
+                                name="empresa" 
+                                required
+                                class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                            <option value="" class="bg-blue-900">Selecione uma empresa</option>
+                            <option value="Meira Lins" class="bg-blue-900" {% if additional_data.empresa == 'Meira Lins' %}selected{% endif %}>Meira Lins</option>
+                            <option value="Pigalle" class="bg-blue-900" {% if additional_data.empresa == 'Pigalle' %}selected{% endif %}>Pigalle</option>
+                            <option value="Michigan" class="bg-blue-900" {% if additional_data.empresa == 'Michigan' %}selected{% endif %}>Michigan</option>
+                            <option value="Asia" class="bg-blue-900" {% if additional_data.empresa == 'Asia' %}selected{% endif %}>Asia</option>
+                            <option value="Novo Mundo" class="bg-blue-900" {% if additional_data.empresa == 'Novo Mundo' %}selected{% endif %}>Novo Mundo</option>
+                            <option value="ADTSA Auto" class="bg-blue-900" {% if additional_data.empresa == 'ADTSA Auto' %}selected{% endif %}>ADTSA Auto</option>
+                            <option value="Regence" class="bg-blue-900" {% if additional_data.empresa == 'Regence' %}selected{% endif %}>Regence</option>
+                            <option value="Silcar" class="bg-blue-900" {% if additional_data.empresa == 'Silcar' %}selected{% endif %}>Silcar</option>
+                            <option value="Oriental" class="bg-blue-900" {% if additional_data.empresa == 'Oriental' %}selected{% endif %}>Oriental</option>
+                        </select>
+                    </div>
+
+                    <!-- Marca -->
+                    <div>
+                        <label for="modal_marca_veiculo" class="block text-sm font-semibold text-blue-200 mb-2">
+                            <ion-icon name="pricetag" class="align-middle mr-1"></ion-icon>
+                            Marca <span class="text-red-400">*</span>
+                        </label>
+                        <select id="modal_marca_veiculo" 
+                                name="marca" 
+                                required
+                                class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                            <option value="" class="bg-blue-900">Selecione uma marca</option>
+                            <option value="Volkswagen" class="bg-blue-900" {% if additional_data.marca == 'Volkswagen' %}selected{% endif %}>Volkswagen</option>
+                            <option value="Citroen" class="bg-blue-900" {% if additional_data.marca == 'Citroen' %}selected{% endif %}>Citroen</option>
+                            <option value="Peugeot" class="bg-blue-900" {% if additional_data.marca == 'Peugeot' %}selected{% endif %}>Peugeot</option>
+                            <option value="Ford" class="bg-blue-900" {% if additional_data.marca == 'Ford' %}selected{% endif %}>Ford</option>
+                            <option value="GWM" class="bg-blue-900" {% if additional_data.marca == 'GWM' %}selected{% endif %}>GWM</option>
+                            <option value="Omoda" class="bg-blue-900" {% if additional_data.marca == 'Omoda' %}selected{% endif %}>Omoda</option>
+                            <option value="Jaecco" class="bg-blue-900" {% if additional_data.marca == 'Jaecco' %}selected{% endif %}>Jaecco</option>
+                            <option value="Renault" class="bg-blue-900" {% if additional_data.marca == 'Renault' %}selected{% endif %}>Renault</option>
+                            <option value="Chevrolet" class="bg-blue-900" {% if additional_data.marca == 'Chevrolet' %}selected{% endif %}>Chevrolet</option>
+                            <option value="Honda" class="bg-blue-900" {% if additional_data.marca == 'Honda' %}selected{% endif %}>Honda</option>
+                        </select>
+                    </div>
+
+                    <!-- Unidade -->
+                    <div>
+                        <label for="modal_unidade" class="block text-sm font-semibold text-blue-200 mb-2">
+                            <ion-icon name="location" class="align-middle mr-1"></ion-icon>
+                            Unidade <span class="text-red-400">*</span>
+                        </label>
+                        <select id="modal_unidade" 
+                                name="unidade" 
+                                required
+                                class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                            <option value="" class="bg-blue-900">Selecione uma unidade</option>
+                            <!-- Meira Lins -->
+                            <option value="Imbiribeira" class="bg-blue-900" data-empresa="Meira Lins" {% if additional_data.unidade == 'Imbiribeira' %}selected{% endif %}>Imbiribeira</option>
+                            <option value="Piedade" class="bg-blue-900" data-empresa="Meira Lins" {% if additional_data.unidade == 'Piedade' %}selected{% endif %}>Piedade</option>
+                            <option value="Pina" class="bg-blue-900" data-empresa="Meira Lins" {% if additional_data.unidade == 'Pina' %}selected{% endif %}>Pina</option>
+                            <option value="Carpina" class="bg-blue-900" data-empresa="Meira Lins" {% if additional_data.unidade == 'Carpina' %}selected{% endif %}>Carpina</option>
+                            <option value="Dumont" class="bg-blue-900" data-empresa="Meira Lins" {% if additional_data.unidade == 'Dumont' %}selected{% endif %}>Dumont</option>
+                            <!-- Pigalle -->
+                            <option value="Imbiribeira" class="bg-blue-900" data-empresa="Pigalle" {% if additional_data.unidade == 'Imbiribeira' %}selected{% endif %}>Imbiribeira</option>
+                            <option value="Piedade" class="bg-blue-900" data-empresa="Pigalle" {% if additional_data.unidade == 'Piedade' %}selected{% endif %}>Piedade</option>
+                            <option value="Afogados" class="bg-blue-900" data-empresa="Pigalle" {% if additional_data.unidade == 'Afogados' %}selected{% endif %}>Afogados</option>
+                            <option value="WS" class="bg-blue-900" data-empresa="Pigalle" {% if additional_data.unidade == 'WS' %}selected{% endif %}>WS</option>
+                            <!-- Michigan -->
+                            <option value="Juazeiro" class="bg-blue-900" data-empresa="Michigan" {% if additional_data.unidade == 'Juazeiro' %}selected{% endif %}>Juazeiro</option>
+                            <!-- Asia -->
+                            <option value="Imbiribeira" class="bg-blue-900" data-empresa="Asia" {% if additional_data.unidade == 'Imbiribeira' %}selected{% endif %}>Imbiribeira</option>
+                            <option value="Casa Forte" class="bg-blue-900" data-empresa="Asia" {% if additional_data.unidade == 'Casa Forte' %}selected{% endif %}>Casa Forte</option>
+                            <!-- Novo Mundo -->
+                            <option value="Jaboatão" class="bg-blue-900" data-empresa="Novo Mundo" {% if additional_data.unidade == 'Jaboatão' %}selected{% endif %}>Jaboatão</option>
+                            <option value="Maceió" class="bg-blue-900" data-empresa="Novo Mundo" {% if additional_data.unidade == 'Maceió' %}selected{% endif %}>Maceió</option>
+                            <option value="Arapiraca" class="bg-blue-900" data-empresa="Novo Mundo" {% if additional_data.unidade == 'Arapiraca' %}selected{% endif %}>Arapiraca</option>
+                            <!-- ADTSA Auto -->
+                            <option value="Imbiribeira" class="bg-blue-900" data-empresa="ADTSA Auto" {% if additional_data.unidade == 'Imbiribeira' %}selected{% endif %}>Imbiribeira</option>
+                            <!-- Regence -->
+                            <option value="Avenida Norte" class="bg-blue-900" data-empresa="Regence" {% if additional_data.unidade == 'Avenida Norte' %}selected{% endif %}>Avenida Norte</option>
+                            <option value="Caxangá" class="bg-blue-900" data-empresa="Regence" {% if additional_data.unidade == 'Caxangá' %}selected{% endif %}>Caxangá</option>
+                            <option value="Caruaru" class="bg-blue-900" data-empresa="Regence" {% if additional_data.unidade == 'Caruaru' %}selected{% endif %}>Caruaru</option>
+                            <option value="Dunas" class="bg-blue-900" data-empresa="Regence" {% if additional_data.unidade == 'Dunas' %}selected{% endif %}>Dunas</option>
+                            <option value="Fátima" class="bg-blue-900" data-empresa="Regence" {% if additional_data.unidade == 'Fátima' %}selected{% endif %}>Fátima</option>
+                            <!-- Silcar -->
+                            <option value="Domingos" class="bg-blue-900" data-empresa="Silcar" {% if additional_data.unidade == 'Domingos' %}selected{% endif %}>Domingos</option>
+                            <option value="Papicu" class="bg-blue-900" data-empresa="Silcar" {% if additional_data.unidade == 'Papicu' %}selected{% endif %}>Papicu</option>
+                            <!-- Oriental -->
+                            <option value="Salvador" class="bg-blue-900" data-empresa="Oriental" {% if additional_data.unidade == 'Salvador' %}selected{% endif %}>Salvador</option>
+                        </select>
+                    </div>
+
+                    <!-- Setor -->
+                    <div>
+                        <label for="modal_setor_departamento" class="block text-sm font-semibold text-blue-200 mb-2">
+                            <ion-icon name="layers" class="align-middle mr-1"></ion-icon>
+                            Setor <span class="text-red-400">*</span>
+                        </label>
+                        <select id="modal_setor_departamento" 
+                                name="setor" 
+                                required
+                                class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                            <option value="" class="bg-blue-900">Selecione um setor</option>
+                            <option value="VENDAS CONSÓRCIO" class="bg-blue-900" {% if additional_data.setor == 'VENDAS CONSÓRCIO' %}selected{% endif %}>VENDAS CONSÓRCIO</option>
+                            <option value="VENDAS" class="bg-blue-900" {% if additional_data.setor == 'VENDAS' %}selected{% endif %}>VENDAS</option>
+                            <option value="TI" class="bg-blue-900" {% if additional_data.setor == 'TI' %}selected{% endif %}>TI</option>
+                            <option value="SEGUROS - VENDAS" class="bg-blue-900" {% if additional_data.setor == 'SEGUROS - VENDAS' %}selected{% endif %}>SEGUROS - VENDAS</option>
+                            <option value="PRODUTIVO" class="bg-blue-900" {% if additional_data.setor == 'PRODUTIVO' %}selected{% endif %}>PRODUTIVO</option>
+                            <option value="PLANEJAMENTO E GESTÃO" class="bg-blue-900" {% if additional_data.setor == 'PLANEJAMENTO E GESTÃO' %}selected{% endif %}>PLANEJAMENTO E GESTÃO</option>
+                            <option value="PESSOAL" class="bg-blue-900" {% if additional_data.setor == 'PESSOAL' %}selected{% endif %}>PESSOAL</option>
+                            <option value="JURIDICO" class="bg-blue-900" {% if additional_data.setor == 'JURIDICO' %}selected{% endif %}>JURIDICO</option>
+                            <option value="GENTE E GESTÃO" class="bg-blue-900" {% if additional_data.setor == 'GENTE E GESTÃO' %}selected{% endif %}>GENTE E GESTÃO</option>
+                            <option value="FISCAL" class="bg-blue-900" {% if additional_data.setor == 'FISCAL' %}selected{% endif %}>FISCAL</option>
+                            <option value="FINANCEIRO" class="bg-blue-900" {% if additional_data.setor == 'FINANCEIRO' %}selected{% endif %}>FINANCEIRO</option>
+                            <option value="DIRETORIA" class="bg-blue-900" {% if additional_data.setor == 'DIRETORIA' %}selected{% endif %}>DIRETORIA</option>
+                            <option value="CONTROLADORIA" class="bg-blue-900" {% if additional_data.setor == 'CONTROLADORIA' %}selected{% endif %}>CONTROLADORIA</option>
+                            <option value="CONTABIL" class="bg-blue-900" {% if additional_data.setor == 'CONTABIL' %}selected{% endif %}>CONTABIL</option>
+                            <option value="AUDITORIA INTERNA" class="bg-blue-900" {% if additional_data.setor == 'AUDITORIA INTERNA' %}selected{% endif %}>AUDITORIA INTERNA</option>
+                            <option value="ADMINSTRAÇAO" class="bg-blue-900" {% if additional_data.setor == 'ADMINSTRAÇAO' %}selected{% endif %}>ADMINSTRAÇAO</option>
+                            <option value="ADMINISTRATIVO" class="bg-blue-900" {% if additional_data.setor == 'ADMINISTRATIVO' %}selected{% endif %}>ADMINISTRATIVO</option>
+                            <option value="ADMINISTRAÇÃO SEGUROS" class="bg-blue-900" {% if additional_data.setor == 'ADMINISTRAÇÃO SEGUROS' %}selected{% endif %}>ADMINISTRAÇÃO SEGUROS</option>
+                            <option value="ADMINISTRACAO LOJA" class="bg-blue-900" {% if additional_data.setor == 'ADMINISTRACAO LOJA' %}selected{% endif %}>ADMINISTRACAO LOJA</option>
+                            <option value="ADMINISTRACAO CONSÓRCIO" class="bg-blue-900" {% if additional_data.setor == 'ADMINISTRACAO CONSÓRCIO' %}selected{% endif %}>ADMINISTRACAO CONSÓRCIO</option>
+                            <option value="ADMINISTRACAO" class="bg-blue-900" {% if additional_data.setor == 'ADMINISTRACAO' %}selected{% endif %}>ADMINISTRACAO</option>
+                        </select>
+                    </div>
+
+                    <!-- Cargo -->
+                    <div>
+                        <label for="modal_cargo" class="block text-sm font-semibold text-blue-200 mb-2">
+                            <ion-icon name="person-circle" class="align-middle mr-1"></ion-icon>
+                            Cargo <span class="text-red-400">*</span>
+                        </label>
+                        <select id="modal_cargo" 
+                                name="cargo" 
+                                required
+                                class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                            <option value="" class="bg-blue-900">Selecione um cargo</option>
+                            <option value="GERENTE" class="bg-blue-900" {% if additional_data.cargo == 'GERENTE' %}selected{% endif %}>GERENTE</option>
+                            <option value="ENCARREGADO DE ESTOQUE" class="bg-blue-900" {% if additional_data.cargo == 'ENCARREGADO DE ESTOQUE' %}selected{% endif %}>ENCARREGADO DE ESTOQUE</option>
+                            <option value="ESTAGIARIO" class="bg-blue-900" {% if additional_data.cargo == 'ESTAGIARIO' %}selected{% endif %}>ESTAGIARIO</option>
+                            <option value="VENDEDOR DE SEGUROS" class="bg-blue-900" {% if additional_data.cargo == 'VENDEDOR DE SEGUROS' %}selected{% endif %}>VENDEDOR DE SEGUROS</option>
+                            <option value="MECANICO" class="bg-blue-900" {% if additional_data.cargo == 'MECANICO' %}selected{% endif %}>MECANICO</option>
+                            <option value="SUPERINTENDENTE" class="bg-blue-900" {% if additional_data.cargo == 'SUPERINTENDENTE' %}selected{% endif %}>SUPERINTENDENTE</option>
+                            <option value="APRENDIZ" class="bg-blue-900" {% if additional_data.cargo == 'APRENDIZ' %}selected{% endif %}>APRENDIZ</option>
+                            <option value="ANALISTA" class="bg-blue-900" {% if additional_data.cargo == 'ANALISTA' %}selected{% endif %}>ANALISTA</option>
+                            <option value="DIRETOR" class="bg-blue-900" {% if additional_data.cargo == 'DIRETOR' %}selected{% endif %}>DIRETOR</option>
+                            <option value="AUXILIAR DE ARQUIVO" class="bg-blue-900" {% if additional_data.cargo == 'AUXILIAR DE ARQUIVO' %}selected{% endif %}>AUXILIAR DE ARQUIVO</option>
+                            <option value="ASSISTENTE ADMINISTRATIVO" class="bg-blue-900" {% if additional_data.cargo == 'ASSISTENTE ADMINISTRATIVO' %}selected{% endif %}>ASSISTENTE ADMINISTRATIVO</option>
+                            <option value="LIDER DE MANUTENÇÃO" class="bg-blue-900" {% if additional_data.cargo == 'LIDER DE MANUTENÇÃO' %}selected{% endif %}>LIDER DE MANUTENÇÃO</option>
+                            <option value="TECNICO DE SEGUROS" class="bg-blue-900" {% if additional_data.cargo == 'TECNICO DE SEGUROS' %}selected{% endif %}>TECNICO DE SEGUROS</option>
+                            <option value="AUX. SERVICOS GERAIS" class="bg-blue-900" {% if additional_data.cargo == 'AUX. SERVICOS GERAIS' %}selected{% endif %}>AUX. SERVICOS GERAIS</option>
+                            <option value="COORDENADOR ADM" class="bg-blue-900" {% if additional_data.cargo == 'COORDENADOR ADM' %}selected{% endif %}>COORDENADOR ADM</option>
+                            <option value="AUX. ADMINISTRATIVO" class="bg-blue-900" {% if additional_data.cargo == 'AUX. ADMINISTRATIVO' %}selected{% endif %}>AUX. ADMINISTRATIVO</option>
+                        </select>
+                    </div>
+
+                    <!-- Botões -->
+                    <div class="flex gap-3 pt-4">
+                        <button type="button" 
+                                onclick="closeModal()"
+                                class="flex-1 bg-gray-600/50 hover:bg-gray-600/70 text-white font-semibold py-3 px-6 rounded-lg transition-all">
+                            Cancelar
+                        </button>
+                        <button type="submit" 
+                                class="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-3 px-6 rounded-lg transition-all flex items-center justify-center">
+                            <ion-icon name="save-outline" class="mr-2"></ion-icon>
+                            Salvar
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
-    </main>
+    </div>
+
+    <!-- Modal de Seleção de Cursos -->
+    <div id="coursesModal" class="modal">
+        <div class="modal-content">
+            <div class="p-6 border-b border-white/20">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl font-bold text-white flex items-center">
+                        <ion-icon name="school-outline" class="mr-2"></ion-icon>
+                        Selecionar Cursos de Interesse
+                    </h2>
+                    <span class="close" onclick="closeCoursesModal()">&times;</span>
+                </div>
+            </div>
+
+            <div class="p-6">
+                <form method="POST" action="{{ url_for('user.update_profile') }}" class="space-y-4">
+                    <!-- Campos ocultos para manter os dados atuais -->
+                    <input type="hidden" name="empresa" value="{{ additional_data.empresa }}">
+                    <input type="hidden" name="marca" value="{{ additional_data.marca }}">
+                    <input type="hidden" name="unidade" value="{{ additional_data.unidade }}">
+                    <input type="hidden" name="setor" value="{{ additional_data.setor }}">
+                    <input type="hidden" name="cargo" value="{{ additional_data.cargo }}">
+
+                    <!-- Seleção de Cursos -->
+                    <div>
+                        <label class="block text-lg font-semibold text-white mb-4">
+                            <ion-icon name="book-outline" class="align-middle mr-2 text-2xl"></ion-icon>
+                            Escolha os cursos que você deseja fazer
+                        </label>
+                        <p class="text-sm text-blue-200 mb-4">
+                            <ion-icon name="information-circle-outline" class="align-middle"></ion-icon>
+                            Selecione quantos cursos desejar. Você pode alterar sua seleção a qualquer momento.
+                        </p>
+                        
+                        <div class="bg-white/5 border border-white/20 rounded-lg p-4 max-h-96 overflow-y-auto">
+                            {% if available_topics %}
+                                <div class="space-y-2">
+                                    {% for topic in available_topics %}
+                                    <label class="flex items-start gap-3 p-3 hover:bg-white/10 rounded-lg cursor-pointer transition-all group">
+                                        <input type="checkbox" 
+                                               name="selected_courses" 
+                                               value="{{ topic }}"
+                                               {% if topic in selected_courses %}checked{% endif %}
+                                               class="w-5 h-5 rounded border-white/30 bg-white/10 text-indigo-600 focus:ring-2 focus:ring-indigo-500 mt-0.5 flex-shrink-0">
+                                        <div class="flex-1">
+                                            <span class="text-white font-medium block group-hover:text-indigo-200 transition-colors">{{ topic }}</span>
+                                        </div>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center py-8">
+                                    <ion-icon name="school-outline" class="text-5xl text-gray-400 mb-3"></ion-icon>
+                                    <p class="text-gray-400 text-sm">Nenhum curso disponível no momento</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Botões -->
+                    <div class="flex gap-3 pt-4">
+                        <button type="button" 
+                                onclick="closeCoursesModal()"
+                                class="flex-1 bg-gray-600/50 hover:bg-gray-600/70 text-white font-semibold py-3 px-6 rounded-lg transition-all">
+                            Cancelar
+                        </button>
+                        <button type="submit" 
+                                class="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-all flex items-center justify-center shadow-lg">
+                            <ion-icon name="save-outline" class="mr-2 text-xl"></ion-icon>
+                            Salvar Seleção
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <!-- Footer -->
     <footer class="mt-12 bg-blue-900/50 border-t border-blue-700/50">
@@ -256,5 +821,112 @@
     </footer>
 
     <script src="{{ url_for('static', filename='js/navbar.js') }}"></script>
+    <script>
+        // Cache dos elementos para melhor performance
+        let empresaSelect, unidadeSelect;
+        
+        // Inicialização mais eficiente
+        document.addEventListener('DOMContentLoaded', function() {
+            empresaSelect = document.getElementById('modal_empresa');
+            unidadeSelect = document.getElementById('modal_unidade');
+            
+            if (empresaSelect) {
+                empresaSelect.addEventListener('change', filterUnidades);
+            }
+        });
+
+        // Funções do Modal de Informações Adicionais
+        function openModal() {
+            const modal = document.getElementById('editModal');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            
+            // Filtra unidades usando requestAnimationFrame para melhor performance
+            requestAnimationFrame(filterUnidades);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('editModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Funções do Modal de Cursos
+        function openCoursesModal() {
+            const modal = document.getElementById('coursesModal');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeCoursesModal() {
+            const modal = document.getElementById('coursesModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Fechar modal ao clicar fora dele
+        window.onclick = function(event) {
+            const editModal = document.getElementById('editModal');
+            const coursesModal = document.getElementById('coursesModal');
+            
+            if (event.target === editModal) {
+                closeModal();
+            } else if (event.target === coursesModal) {
+                closeCoursesModal();
+            }
+        }
+
+        // Fechar modal com tecla ESC
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                const editModal = document.getElementById('editModal');
+                const coursesModal = document.getElementById('coursesModal');
+                
+                if (editModal.classList.contains('active')) {
+                    closeModal();
+                } else if (coursesModal.classList.contains('active')) {
+                    closeCoursesModal();
+                }
+            }
+        });
+
+        // Filtrar unidades baseadas na empresa selecionada - OTIMIZADO
+        function filterUnidades() {
+            if (!empresaSelect || !unidadeSelect) return;
+            
+            const empresaSelecionada = empresaSelect.value;
+            const options = unidadeSelect.options;
+            const length = options.length;
+            
+            // Loop otimizado - acessa diretamente sem conversão de array
+            for (let i = 0; i < length; i++) {
+                const option = options[i];
+                
+                if (option.value === '') {
+                    option.style.display = 'block';
+                    continue;
+                }
+                
+                const empresaOption = option.getAttribute('data-empresa');
+                
+                if (empresaSelecionada === '' || empresaOption === empresaSelecionada) {
+                    option.style.display = 'block';
+                } else {
+                    option.style.display = 'none';
+                }
+            }
+            
+            // Verifica se precisa resetar a seleção
+            const selectedIndex = unidadeSelect.selectedIndex;
+            if (selectedIndex > 0) {
+                const selectedOption = options[selectedIndex];
+                const selectedEmpresa = selectedOption.getAttribute('data-empresa');
+                
+                if (selectedEmpresa !== empresaSelecionada && empresaSelecionada !== '') {
+                    unidadeSelect.value = '';
+                }
+            }
+        }
+    </script>
 </body>
 </html>

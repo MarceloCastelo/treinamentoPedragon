@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes - {{ user.username }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #032B56 0%, #1e40af 50%, #1e3a8a 100%);
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .section-animate {
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen flex flex-col" data-is-admin="true">
+    <!-- Navbar -->
+    <div id="navbar-container"></div>
+
+    <!-- Conteúdo Principal -->
+    <main class="flex-grow container mx-auto px-4 py-8 mt-16">
+        <!-- Header do Usuário -->
+        <section class="section-animate mb-8">
+            <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                <div class="flex items-center space-x-4 mb-6">
+                    <div class="flex-shrink-0 w-20 h-20 bg-blue-500/30 rounded-full flex items-center justify-center">
+                        <ion-icon name="person-outline" class="text-5xl text-blue-200"></ion-icon>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-white">{{ user.info.displayName or user.username }}</h1>
+                        <p class="text-blue-200">@{{ user.username }}</p>
+                        {% if user.info.mail %}
+                        <p class="text-blue-300 text-sm"><ion-icon name="mail-outline"></ion-icon> {{ user.info.mail }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white/5 rounded-lg p-4 border border-white/10">
+                        <p class="text-blue-200 text-sm mb-1">Empresa</p>
+                        <p class="text-white font-semibold">{{ user.info.empresa or 'Não informado' }}</p>
+                    </div>
+                    <div class="bg-white/5 rounded-lg p-4 border border-white/10">
+                        <p class="text-green-200 text-sm mb-1">Unidade</p>
+                        <p class="text-white font-semibold">{{ user.info.unidade or 'Não informado' }}</p>
+                    </div>
+                    <div class="bg-white/5 rounded-lg p-4 border border-white/10">
+                        <p class="text-yellow-200 text-sm mb-1">Setor</p>
+                        <p class="text-white font-semibold">{{ user.info.setor or 'Não informado' }}</p>
+                    </div>
+                    <div class="bg-white/5 rounded-lg p-4 border border-white/10">
+                        <p class="text-purple-200 text-sm mb-1">Cargo</p>
+                        <p class="text-white font-semibold">{{ user.info.cargo or 'Não informado' }}</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Progresso por Módulo -->
+        <section class="section-animate mb-8">
+            <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                <h2 class="text-2xl font-bold text-white mb-6 flex items-center">
+                    <ion-icon name="play-circle-outline" class="mr-3"></ion-icon>
+                    Progresso por Módulo
+                </h2>
+                
+                {% if user.modules %}
+                    {% for module_name, module_data in user.modules.items() %}
+                    <div class="mb-6 bg-white/5 rounded-lg p-5 border border-white/10">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-semibold text-blue-200">{{ module_name }}</h3>
+                            <span class="text-blue-300 text-sm">
+                                {{ module_data.watched }}/{{ module_data.total }} vídeos assistidos
+                            </span>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            {% for video in module_data.videos %}
+                            <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
+                                <div class="flex items-center space-x-3 flex-1 min-w-0">
+                                    {% if video.watched %}
+                                    <ion-icon name="checkmark-circle" class="text-green-400 text-xl flex-shrink-0"></ion-icon>
+                                    {% else %}
+                                    <ion-icon name="ellipse-outline" class="text-gray-400 text-xl flex-shrink-0"></ion-icon>
+                                    {% endif %}
+                                    <span class="text-white truncate">{{ video.name }}</span>
+                                </div>
+                                <div class="flex items-center space-x-3 flex-shrink-0 ml-4">
+                                    <div class="w-32 bg-white/20 rounded-full h-2">
+                                        <div class="bg-blue-500 h-2 rounded-full" style="width: {{ video.progress }}%"></div>
+                                    </div>
+                                    <span class="text-blue-200 text-sm font-semibold min-w-[50px] text-right">{{ video.progress }}%</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-blue-200 text-center py-8">Nenhum progresso registrado ainda.</p>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- Resultados de Provas -->
+        <section class="section-animate mb-8">
+            <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                <h2 class="text-2xl font-bold text-white mb-6 flex items-center">
+                    <ion-icon name="clipboard-outline" class="mr-3"></ion-icon>
+                    Resultados de Provas
+                </h2>
+                
+                {% if user.exams %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {% for exam in user.exams %}
+                        <div class="rounded-lg p-5 border {% if exam.passed %}bg-green-500/10 border-green-400/30{% else %}bg-red-500/10 border-red-400/30{% endif %}">
+                            <div class="flex justify-between items-start mb-4">
+                                <h3 class="font-semibold text-white text-lg">{{ exam.topic }}</h3>
+                                <span class="px-3 py-1 rounded-full text-sm font-semibold
+                                    {% if exam.passed %}bg-green-500/30 text-green-200{% else %}bg-red-500/30 text-red-200{% endif %}">
+                                    {% if exam.passed %}
+                                    <ion-icon name="checkmark-circle-outline" class="mr-1"></ion-icon>Aprovado
+                                    {% else %}
+                                    <ion-icon name="close-circle-outline" class="mr-1"></ion-icon>Reprovado
+                                    {% endif %}
+                                </span>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <p class="text-sm {% if exam.passed %}text-green-200{% else %}text-red-200{% endif %} mb-1">Melhor Nota:</p>
+                                <p class="text-4xl font-bold text-white">{{ exam.best_score }}</p>
+                            </div>
+                            
+                            <div>
+                                <p class="text-sm {% if exam.passed %}text-green-200{% else %}text-red-200{% endif %} mb-2">
+                                    Tentativas: {{ exam.num_attempts }}
+                                </p>
+                                <div class="space-y-1">
+                                    {% for attempt in exam.attempts %}
+                                    <div class="flex justify-between items-center text-sm bg-white/5 rounded px-3 py-2">
+                                        <span class="text-blue-200">{{ attempt.date }}</span>
+                                        <span class="font-semibold {% if attempt.passed %}text-green-300{% else %}text-red-300{% endif %}">
+                                            {{ attempt.score }}
+                                        </span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-blue-200 text-center py-8">Nenhuma prova realizada ainda.</p>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- Botão Voltar -->
+        <section class="section-animate">
+            <div class="text-center">
+                <a href="{{ url_for('admin.reports') }}" class="inline-flex items-center px-6 py-3 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 hover:bg-white/20 transition text-white font-semibold">
+                    <ion-icon name="arrow-back-outline" class="mr-2 text-xl"></ion-icon>
+                    Voltar aos Relatórios
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/navbar.js') }}"></script>
+</body>
+</html>

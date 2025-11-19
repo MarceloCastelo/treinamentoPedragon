@@ -38,9 +38,44 @@
             border-radius: 12px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
+        
+        /* Animação de conclusão */
+        @keyframes celebrate {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .celebration {
+            animation: celebrate 0.6s ease-in-out;
+        }
+        
+        /* Toast de notificação */
+        .toast {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            z-index: 9999;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        /* Tooltip para prova bloqueada */
+        .exam-locked-tooltip {
+            pointer-events: none;
+            transition: opacity 0.2s ease-in-out;
+        }
     </style>
 </head>
-<body class="gradient-bg min-h-screen">
+<body class="gradient-bg min-h-screen" data-is-admin="{{ session.get('is_admin', False)|lower }}">
     <!-- Navbar -->
     <div id="navbar-container"></div>
 
@@ -50,12 +85,71 @@
             <div class="bg-gradient-to-r from-blue-600/30 to-cyan-600/30 rounded-2xl p-8 border border-white/20">
                 <div class="flex items-center mb-4">
                     <div class="bg-white/20 p-4 rounded-xl mr-4">
+                        {% if completion == 100 %}
+                        <ion-icon name="checkmark-circle" class="text-4xl text-green-400"></ion-icon>
+                        {% else %}
                         <ion-icon name="folder-open-outline" class="text-4xl text-white"></ion-icon>
+                        {% endif %}
                     </div>
-                    <div>
-                        <h2 class="text-3xl font-bold text-white mb-2">{{ topic_name }}</h2>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-2">
+                            <h2 class="text-3xl font-bold text-white">{{ topic_name }}</h2>
+                            {% if completion == 100 %}
+                            <span class="bg-green-500/20 text-green-300 px-3 py-1 rounded-full text-sm font-semibold border border-green-400/30">
+                                ✓ Concluído
+                            </span>
+                            {% elif completion > 0 %}
+                            <span class="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full text-sm font-semibold border border-blue-400/30">
+                                {{ completion }}% completo
+                            </span>
+                            {% endif %}
+                        </div>
                         <p class="text-blue-200">{{ videos|length }} vídeo{{ 's' if videos|length > 1 else '' }} disponível{{ 'is' if videos|length > 1 else '' }}</p>
+                        {% if completion > 0 and completion < 100 %}
+                        <div class="flex items-center gap-2 mt-2">
+                            <div class="flex-1 bg-white/10 rounded-full h-2 max-w-xs">
+                                <div class="bg-gradient-to-r from-blue-400 to-cyan-500 h-2 rounded-full transition-all duration-500" 
+                                     style="width: {{ completion }}%"></div>
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
+                </div>
+                
+                <!-- Botão de Prova -->
+                <div class="mt-6 flex gap-4">
+                    <a href="{{ url_for('video.home') }}" 
+                       class="bg-gray-500/30 hover:bg-gray-500/50 text-white px-6 py-3 rounded-xl transition-colors flex items-center">
+                        <ion-icon name="arrow-back-outline" class="text-xl mr-2"></ion-icon>
+                        Voltar
+                    </a>
+                    
+                    <!-- Mostrar botão apenas se existe prova para este módulo -->
+                    {% if exam_exists %}
+                        {% if completion == 100 %}
+                        <!-- Prova liberada -->
+                        <a href="{{ url_for('exam.exam', topic_name=topic_name) }}" 
+                           class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-3 rounded-xl font-semibold transition-all flex items-center shadow-lg">
+                            <ion-icon name="document-text-outline" class="text-xl mr-2"></ion-icon>
+                            Fazer Prova do Módulo
+                        </a>
+                        {% else %}
+                        <!-- Prova bloqueada -->
+                        <div class="relative group">
+                            <button disabled
+                                   class="bg-gray-600/30 text-gray-400 px-6 py-3 rounded-xl font-semibold flex items-center shadow-lg cursor-not-allowed opacity-60">
+                                <ion-icon name="lock-closed-outline" class="text-xl mr-2"></ion-icon>
+                                Prova Bloqueada
+                            </button>
+                            <div class="absolute left-0 top-full mt-2 bg-gray-800/95 text-white text-sm px-4 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl z-10">
+                                <div class="flex items-center gap-2">
+                                    <ion-icon name="information-circle-outline" class="text-blue-400"></ion-icon>
+                                    <span>Complete todos os vídeos para liberar a prova ({{ completion }}% concluído)</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endif %}
                 </div>
             </div>
         </section>
@@ -71,18 +165,31 @@
                 {% if videos %}
                     <div class="space-y-4">
                         {% for video in videos %}
-                        <div class="bg-white/5 rounded-xl border border-white/20 p-4 hover:bg-white/10 transition-all">
+                        <div class="bg-white/5 rounded-xl border {% if video.completed %}border-green-500/50{% else %}border-white/20{% endif %} p-4 hover:bg-white/10 transition-all">
                             <button onclick="toggleVideo('video-{{ loop.index }}')" 
                                     class="w-full flex items-center justify-between text-left group">
                                 <div class="flex items-center flex-1">
-                                    <div class="bg-blue-500/20 p-3 rounded-xl mr-4">
+                                    <div class="{% if video.completed %}bg-green-500/20{% else %}bg-blue-500/20{% endif %} p-3 rounded-xl mr-4 relative">
+                                        {% if video.completed %}
+                                        <ion-icon name="checkmark-circle" class="text-3xl text-green-400"></ion-icon>
+                                        {% else %}
                                         <ion-icon name="play-circle" class="text-3xl text-blue-400"></ion-icon>
+                                        {% endif %}
                                     </div>
-                                    <div>
-                                        <h4 class="text-lg font-semibold text-white group-hover:text-blue-300 transition-colors">
-                                            {{ video | format_video_name }}
-                                        </h4>
-                                        <p class="text-blue-200 text-sm">Clique para assistir</p>
+                                    <div class="flex-1">
+                                        <div class="flex items-center gap-2">
+                                            <h4 class="text-lg font-semibold text-white group-hover:text-blue-300 transition-colors">
+                                                {{ video.name | format_video_name }}
+                                            </h4>
+                                            {% if video.completed %}
+                                            <span class="bg-green-500/20 text-green-300 text-xs px-2 py-1 rounded-full border border-green-400/30">
+                                                ✓ Assistido
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                        <p class="{% if video.completed %}text-green-200{% else %}text-blue-200{% endif %} text-sm">
+                                            {% if video.completed %}Vídeo concluído{% else %}Clique para assistir{% endif %}
+                                        </p>
                                     </div>
                                 </div>
                                 <ion-icon name="chevron-down-outline" 
@@ -92,13 +199,17 @@
                             
                             <!-- Container do Player -->
                             <div id="video-{{ loop.index }}" class="hidden mt-4 p-4 bg-black/20 rounded-xl">
-                                <video controls preload="metadata" class="w-full max-h-96 lg:max-h-[600px]" 
-                                       id="player-{{ loop.index }}" 
-                                       data-video-name="{{ video }}">
-                                    <source src="{{ url_for('auth.serve_video', topic=topic_name, filename=video) }}" 
-                                            type="video/mp4">
-                                    Seu navegador não suporta a reprodução de vídeos HTML5.
-                                </video>
+                                <div class="relative">
+                                    <video controls preload="none" class="w-full max-h-96 lg:max-h-[600px]" 
+                                           id="player-{{ loop.index }}" 
+                                           data-video-name="{{ video.name }}"
+                                           data-video-index="{{ loop.index }}"
+                                           controlsList="nodownload">
+                                        <source src="{{ url_for('video.serve_video', topic=topic_name, filename=video.name) }}" 
+                                                type="video/mp4">
+                                        Seu navegador não suporta a reprodução de vídeos HTML5.
+                                    </video>
+                                </div>
                             </div>
                         </div>
                         {% endfor %}
@@ -127,11 +238,76 @@
 
     <script>
         let currentVideo = null;
+        let videoEventHandlers = new Map(); // Armazena handlers para remoção posterior
+        let saveProgressTimeout = null; // Para debounce
         const topicName = "{{ topic_name }}";
+
         
-        // Função para salvar progresso do vídeo
-        function saveProgress(videoName, currentTime, duration) {
-            fetch('/auth/save-progress', {
+        // Função para mostrar notificação de conclusão
+        function showCompletionToast() {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <ion-icon name="checkmark-circle" class="text-3xl"></ion-icon>
+                    <div>
+                        <div class="font-bold">Vídeo Concluído!</div>
+                        <div class="text-sm opacity-90">Progresso salvo!</div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(400px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 2000);
+        }
+        
+        // Função para marcar vídeo como concluído (apenas quando realmente concluir)
+        function markAsCompleted(videoName, duration) {
+            return fetch('/mark-completed', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    topic: topicName,
+                    video_name: videoName,
+                    duration: duration
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('✅ Vídeo marcado como concluído');
+                } else {
+                    console.error('❌ Erro ao marcar como concluído:', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('❌ Erro na requisição:', error);
+            });
+        }
+        
+        // Função para salvar progresso do vídeo com debounce
+        function saveProgress(videoName, currentTime, duration, immediate = false) {
+            if (!immediate) {
+                // Debounce: aguarda 2 segundos sem novas chamadas
+                clearTimeout(saveProgressTimeout);
+                saveProgressTimeout = setTimeout(() => {
+                    performSaveProgress(videoName, currentTime, duration);
+                }, 2000);
+            } else {
+                // Salvar imediatamente
+                clearTimeout(saveProgressTimeout);
+                return performSaveProgress(videoName, currentTime, duration);
+            }
+        }
+        
+        function performSaveProgress(videoName, currentTime, duration) {
+            return fetch('/save-progress', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -146,48 +322,151 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    console.log('Progresso salvo com sucesso');
+                    console.log('💾 Progresso salvo:', Math.floor(currentTime), '/', Math.floor(duration));
                 } else {
-                    console.error('Erro ao salvar progresso:', data.error);
+                    console.error('❌ Erro ao salvar progresso:', data.error);
                 }
             })
             .catch(error => {
-                console.error('Erro na requisição:', error);
+                console.error('❌ Erro na requisição:', error);
             });
         }
         
         // Função para carregar progresso salvo
         function loadProgress(videoName, videoElement) {
-            fetch(`/auth/get-progress/${encodeURIComponent(topicName)}/${encodeURIComponent(videoName)}`)
+            return fetch(`/get-progress/${encodeURIComponent(topicName)}/${encodeURIComponent(videoName)}`)
             .then(response => response.json())
             .then(data => {
-                if (data.success && data.current_time > 0) {
+                if (data.success && data.current_time > 0 && data.current_time < data.duration - 5) {
                     videoElement.currentTime = data.current_time;
-                    console.log('Progresso carregado:', data.current_time);
+                    console.log('📥 Progresso carregado:', Math.floor(data.current_time), 's');
                 }
             })
             .catch(error => {
-                console.error('Erro ao carregar progresso:', error);
+                console.error('❌ Erro ao carregar progresso:', error);
             });
         }
         
-        function toggleVideo(videoId) {
+        // Função para remover event listeners antigos
+        function removeVideoEventListeners(videoElement) {
+            const handlers = videoEventHandlers.get(videoElement);
+            if (handlers) {
+                videoElement.removeEventListener('timeupdate', handlers.timeupdate);
+                videoElement.removeEventListener('pause', handlers.pause);
+                videoElement.removeEventListener('ended', handlers.ended);
+                videoElement.removeEventListener('play', handlers.play);
+                videoEventHandlers.delete(videoElement);
+                console.log('🧹 Event listeners removidos');
+            }
+        }
+        
+        // Função para adicionar event listeners ao vídeo
+        function attachVideoEventListeners(videoElement, videoName) {
+            // Remove listeners antigos se existirem
+            removeVideoEventListeners(videoElement);
+            
+            // Handler para timeupdate - salva progresso periodicamente
+            const timeupdateHandler = function() {
+                const currentTime = videoElement.currentTime;
+                const duration = videoElement.duration;
+                
+                // Salvar progresso a cada 10 segundos (com debounce)
+                if (duration > 0 && Math.floor(currentTime) % 10 === 0) {
+                    saveProgress(videoName, currentTime, duration, false);
+                }
+                
+                // Atualizar badge de progresso se necessário
+                const percentage = (currentTime / duration) * 100;
+                if (percentage >= 90 && !videoElement.dataset.markedComplete) {
+                    videoElement.dataset.markedComplete = 'true';
+                }
+            };
+            
+            // Handler para pause - salva progresso imediatamente
+            const pauseHandler = function() {
+                const currentTime = videoElement.currentTime;
+                const duration = videoElement.duration;
+                console.log('⏸️ Vídeo pausado - salvando progresso');
+                saveProgress(videoName, currentTime, duration, true);
+            };
+            
+            // Handler para ended - marca como concluído e salva
+            const endedHandler = async function() {
+                console.log('🏁 Vídeo finalizado');
+                const duration = videoElement.duration;
+                
+                // Salvar progresso e marcar como concluído
+                await Promise.all([
+                    performSaveProgress(videoName, duration, duration),
+                    markAsCompleted(videoName, duration)
+                ]);
+                
+                // Atualizar UI
+                showCompletionToast();
+                
+                // Atualizar badge do vídeo para "concluído"
+                const videoCard = videoElement.closest('.bg-white\\/5');
+                if (videoCard) {
+                    const badge = videoCard.querySelector('.bg-green-500\\/20');
+                    if (!badge) {
+                        // Adicionar badge de concluído
+                        setTimeout(() => {
+                            location.reload(); // Recarregar para atualizar status
+                        }, 2500);
+                    }
+                }
+            };
+            
+            // Handler para play - apenas loga
+            const playHandler = function() {
+                console.log('▶️ Vídeo iniciado');
+            };
+            
+            // Adicionar event listeners
+            videoElement.addEventListener('timeupdate', timeupdateHandler);
+            videoElement.addEventListener('pause', pauseHandler);
+            videoElement.addEventListener('ended', endedHandler);
+            videoElement.addEventListener('play', playHandler);
+            
+            // Armazenar handlers para remoção posterior
+            videoEventHandlers.set(videoElement, {
+                timeupdate: timeupdateHandler,
+                pause: pauseHandler,
+                ended: endedHandler,
+                play: playHandler
+            });
+            
+            console.log('✅ Event listeners adicionados');
+        }
+        
+        async function toggleVideo(videoId) {
             const container = document.getElementById(videoId);
             const icon = document.getElementById('icon-' + videoId);
             const videoElement = container.querySelector('video');
             const videoName = videoElement.dataset.videoName;
             
-            console.log('Toggle video:', videoId);
-            console.log('Video element:', videoElement);
-            console.log('Video src:', videoElement.querySelector('source')?.src);
+            console.log('🎬 Toggle video:', videoName);
             
-            // Se há um vídeo tocando, pausar e salvar progresso
+            // Se há um vídeo tocando diferente, pausar e salvar
             if (currentVideo && currentVideo !== videoElement) {
                 const currentVideoName = currentVideo.dataset.videoName;
-                saveProgress(currentVideoName, currentVideo.currentTime, currentVideo.duration);
+                const currentTime = currentVideo.currentTime;
+                const duration = currentVideo.duration;
                 
+                console.log('⏸️ Pausando vídeo anterior:', currentVideoName);
+                
+                // Salvar progresso imediatamente
+                await saveProgress(currentVideoName, currentTime, duration, true);
+                
+                // Verificar se deve marcar como concluído (90% ou mais)
+                if (duration > 0 && (currentTime / duration) >= 0.9) {
+                    await markAsCompleted(currentVideoName, duration);
+                }
+                
+                // Pausar vídeo anterior
                 currentVideo.pause();
-                currentVideo.currentTime = 0;
+                
+                // Fechar container anterior
                 const currentContainer = currentVideo.closest('div[id^="video-"]');
                 const currentIcon = document.getElementById('icon-' + currentContainer.id);
                 if (currentContainer) {
@@ -203,41 +482,34 @@
                 container.classList.remove('hidden');
                 icon.style.transform = 'rotate(180deg)';
                 
-                // Forçar carregamento do vídeo
+                // Carregar vídeo
                 const source = videoElement.querySelector('source');
                 if (source && source.src) {
-                    console.log('Carregando vídeo de:', source.src);
+                    console.log('📼 Carregando vídeo:', source.src);
+                    
+                    // Adicionar event listeners
+                    attachVideoEventListeners(videoElement, videoName);
+                    
+                    // Carregar vídeo
                     videoElement.load();
                     
-                    // Aguardar o vídeo estar pronto para reproduzir
-                    videoElement.addEventListener('loadedmetadata', function() {
-                        console.log('Metadados carregados, tentando reproduzir');
-                        // Carregar progresso salvo
-                        loadProgress(videoName, videoElement);
+                    // Aguardar metadados e carregar progresso
+                    videoElement.addEventListener('loadedmetadata', async function() {
+                        console.log('📊 Metadados carregados');
                         
-                        videoElement.play().catch(err => {
-                            console.error('Erro ao reproduzir:', err);
-                        });
-                    }, { once: true });
-                    
-                    // Salvar progresso a cada 5 segundos
-                    videoElement.addEventListener('timeupdate', function() {
-                        if (Math.floor(videoElement.currentTime) % 5 === 0) {
-                            saveProgress(videoName, videoElement.currentTime, videoElement.duration);
+                        // Carregar progresso salvo
+                        await loadProgress(videoName, videoElement);
+                        
+                        // Tentar reproduzir
+                        try {
+                            await videoElement.play();
+                            console.log('▶️ Reproduzindo');
+                        } catch (err) {
+                            console.log('⚠️ Autoplay bloqueado:', err.message);
                         }
-                    });
-                    
-                    // Salvar progresso ao pausar
-                    videoElement.addEventListener('pause', function() {
-                        saveProgress(videoName, videoElement.currentTime, videoElement.duration);
-                    });
-                    
-                    // Salvar progresso ao terminar
-                    videoElement.addEventListener('ended', function() {
-                        saveProgress(videoName, videoElement.duration, videoElement.duration);
-                    });
+                    }, { once: true });
                 } else {
-                    console.error('Source não encontrado ou src vazio');
+                    console.error('❌ Source não encontrado');
                 }
                 
                 currentVideo = videoElement;
@@ -247,13 +519,36 @@
                     container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 }, 200);
             } else {
+                // Fechar vídeo
                 container.classList.add('hidden');
                 icon.style.transform = 'rotate(0deg)';
-                saveProgress(videoName, videoElement.currentTime, videoElement.duration);
+                
+                // Salvar progresso antes de fechar
+                await saveProgress(videoName, videoElement.currentTime, videoElement.duration, true);
+                
                 videoElement.pause();
                 currentVideo = null;
             }
         }
+        
+        // Salvar progresso ao sair da página
+        window.addEventListener('beforeunload', function() {
+            if (currentVideo && currentVideo.currentTime > 0) {
+                const videoName = currentVideo.dataset.videoName;
+                const currentTime = currentVideo.currentTime;
+                const duration = currentVideo.duration;
+                
+                // Usar sendBeacon para garantir que a requisição seja enviada
+                const data = JSON.stringify({
+                    topic: topicName,
+                    video_name: videoName,
+                    current_time: currentTime,
+                    duration: duration
+                });
+                
+                navigator.sendBeacon('/save-progress', data);
+            }
+        });
     </script>
     <script src="{{ url_for('static', filename='js/navbar.js') }}"></script>
 </body>
