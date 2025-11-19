@@ -20,7 +20,38 @@ services:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       timeout: 20s
       retries: 10
+    networks:
+      - app-network
+
+  web:
+    build: .
+    container_name: treinamento_adtsa_web
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      # Configurações do banco de dados
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: treinamento_adtsa
+      DB_USER: adtsa_user
+      DB_PASSWORD: adtsa_pass123
+      # Outras configurações
+      SECRET_KEY: chave-secreta-producao-docker-2024
+      FLASK_ENV: production
+    volumes:
+      - ./static:/app/static
+      - ./templates:/app/templates
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - app-network
 
 volumes:
   mysql_data:
     driver: local
+
+networks:
+  app-network:
+    driver: bridge
