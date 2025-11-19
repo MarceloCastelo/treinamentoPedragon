@@ -70,6 +70,19 @@ CREATE TABLE IF NOT EXISTS audit_log (
     INDEX idx_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Tabela de sessões ativas (rastreamento de usuários logados)
+CREATE TABLE IF NOT EXISTS active_sessions (
+    session_id VARCHAR(255) PRIMARY KEY,
+    username VARCHAR(100) NOT NULL,
+    login_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_activity DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    ip_address VARCHAR(45),
+    user_agent TEXT,
+    INDEX idx_username (username),
+    INDEX idx_last_activity (last_activity),
+    FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- View para estatísticas de progresso por usuário
 CREATE OR REPLACE VIEW user_progress_stats AS
 SELECT 

@@ -1,9 +1,9 @@
 """
 Middleware e decorators para autenticação e autorização
 """
-from flask import session, redirect, url_for, flash
+from flask import session, redirect, url_for, flash, request
 from functools import wraps
-from .database import get_user, create_or_update_user
+from .database import get_user, create_or_update_user, update_session_activity
 
 
 def login_required(f):
@@ -12,6 +12,11 @@ def login_required(f):
     def decorated_function(*args, **kwargs):
         if 'user' not in session:
             return redirect(url_for('auth.login'))
+        
+        # Atualizar atividade da sessão
+        if hasattr(session, 'sid'):
+            update_session_activity(session.sid)
+        
         return f(*args, **kwargs)
     return decorated_function
 

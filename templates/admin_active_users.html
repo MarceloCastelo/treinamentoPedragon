@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuários Logados - ADTSA Treinamentos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .active-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #28a745;
+            animation: pulse 2s infinite;
+            margin-right: 5px;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .inactive-indicator {
+            background-color: #ffc107;
+        }
+
+        .card-stats {
+            border-left: 4px solid #007bff;
+        }
+
+        .user-table {
+            font-size: 0.9rem;
+        }
+
+        .last-update {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+
+        .auto-refresh {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .navbar {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('admin.dashboard') }}">
+                <i class="fas fa-chart-line"></i> Admin - ADTSA
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.dashboard') }}">
+                            <i class="fas fa-home"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('admin.active_users_page') }}">
+                            <i class="fas fa-users"></i> Usuários Logados
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.reports') }}">
+                            <i class="fas fa-chart-bar"></i> Relatórios
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('video.home') }}">
+                            <i class="fas fa-video"></i> Ver Vídeos
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.logout') }}">
+                            <i class="fas fa-sign-out-alt"></i> Sair
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2><i class="fas fa-users"></i> Usuários Logados em Tempo Real</h2>
+                <p class="text-muted">Visualize todos os usuários atualmente autenticados no sistema</p>
+            </div>
+        </div>
+
+        <!-- Cards de Estatísticas -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card card-stats">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="text-muted mb-1">Total de Usuários Online</p>
+                                <h3 class="mb-0" id="total-users">0</h3>
+                            </div>
+                            <div class="text-primary">
+                                <i class="fas fa-users fa-3x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card card-stats" style="border-left-color: #28a745;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="text-muted mb-1">Ativos (< 5 min)</p>
+                                <h3 class="mb-0" id="active-users">0</h3>
+                            </div>
+                            <div class="text-success">
+                                <i class="fas fa-user-check fa-3x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card card-stats" style="border-left-color: #ffc107;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="text-muted mb-1">Inativos (> 5 min)</p>
+                                <h3 class="mb-0" id="inactive-users">0</h3>
+                            </div>
+                            <div class="text-warning">
+                                <i class="fas fa-user-clock fa-3x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Última Atualização -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="last-update">
+                        <i class="fas fa-sync-alt"></i> Última atualização: <span id="last-update">Carregando...</span>
+                    </div>
+                    <div>
+                        <button class="btn btn-sm btn-outline-primary" onclick="loadActiveUsers()">
+                            <i class="fas fa-sync-alt"></i> Atualizar Agora
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela de Usuários -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-list"></i> Lista de Usuários Online</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="loading" class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Carregando...</span>
+                            </div>
+                            <p class="mt-2">Carregando usuários...</p>
+                        </div>
+                        <div id="no-users" class="text-center py-5" style="display: none;">
+                            <i class="fas fa-users-slash fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Nenhum usuário online no momento</p>
+                        </div>
+                        <div id="users-table-container" style="display: none;">
+                            <div class="table-responsive">
+                                <table class="table table-hover user-table">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Status</th>
+                                            <th>Usuário</th>
+                                            <th>E-mail</th>
+                                            <th>Departamento</th>
+                                            <th>Login</th>
+                                            <th>Última Atividade</th>
+                                            <th>Inativo (min)</th>
+                                            <th>IP</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="users-table-body">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botão de Auto-Refresh -->
+        <div class="auto-refresh">
+            <button class="btn btn-primary rounded-circle shadow" id="auto-refresh-btn" onclick="toggleAutoRefresh()" title="Ativar atualização automática">
+                <i class="fas fa-play"></i>
+            </button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let autoRefreshInterval = null;
+        let isAutoRefreshActive = false;
+
+        function loadActiveUsers() {
+            fetch('/admin/api/active-users')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateUI(data.users);
+                        updateLastUpdate();
+                    } else {
+                        console.error('Erro ao carregar usuários:', data.error);
+                        showError();
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro na requisição:', error);
+                    showError();
+                });
+        }
+
+        function updateUI(users) {
+            const loading = document.getElementById('loading');
+            const noUsers = document.getElementById('no-users');
+            const tableContainer = document.getElementById('users-table-container');
+            const tableBody = document.getElementById('users-table-body');
+
+            loading.style.display = 'none';
+
+            if (users.length === 0) {
+                noUsers.style.display = 'block';
+                tableContainer.style.display = 'none';
+                updateStats(0, 0, 0);
+                return;
+            }
+
+            noUsers.style.display = 'none';
+            tableContainer.style.display = 'block';
+
+            // Calcular estatísticas
+            const activeCount = users.filter(u => u.inactive_minutes < 5).length;
+            const inactiveCount = users.length - activeCount;
+            updateStats(users.length, activeCount, inactiveCount);
+
+            // Preencher tabela
+            tableBody.innerHTML = users.map(user => {
+                const isActive = user.inactive_minutes < 5;
+                const statusClass = isActive ? '' : 'inactive-indicator';
+                const statusText = isActive ? 'Ativo' : 'Inativo';
+
+                return `
+                    <tr>
+                        <td>
+                            <span class="active-indicator ${statusClass}" title="${statusText}"></span>
+                        </td>
+                        <td><strong>${user.username}</strong></td>
+                        <td>${user.email}</td>
+                        <td>${user.department}</td>
+                        <td>${user.login_time || '-'}</td>
+                        <td>${user.last_activity || '-'}</td>
+                        <td>
+                            <span class="badge ${isActive ? 'bg-success' : 'bg-warning'}">
+                                ${user.inactive_minutes}
+                            </span>
+                        </td>
+                        <td><small>${user.ip_address}</small></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function updateStats(total, active, inactive) {
+            document.getElementById('total-users').textContent = total;
+            document.getElementById('active-users').textContent = active;
+            document.getElementById('inactive-users').textContent = inactive;
+        }
+
+        function updateLastUpdate() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('pt-BR');
+            document.getElementById('last-update').textContent = timeString;
+        }
+
+        function showError() {
+            const loading = document.getElementById('loading');
+            loading.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Erro ao carregar usuários. Tente novamente.
+                </div>
+            `;
+        }
+
+        function toggleAutoRefresh() {
+            const btn = document.getElementById('auto-refresh-btn');
+            
+            if (isAutoRefreshActive) {
+                // Desativar
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+                isAutoRefreshActive = false;
+                btn.innerHTML = '<i class="fas fa-play"></i>';
+                btn.title = 'Ativar atualização automática';
+                btn.classList.remove('btn-danger');
+                btn.classList.add('btn-primary');
+            } else {
+                // Ativar
+                autoRefreshInterval = setInterval(loadActiveUsers, 10000); // Atualizar a cada 10 segundos
+                isAutoRefreshActive = true;
+                btn.innerHTML = '<i class="fas fa-pause"></i>';
+                btn.title = 'Pausar atualização automática';
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-danger');
+                loadActiveUsers(); // Carregar imediatamente
+            }
+        }
+
+        // Carregar ao iniciar a página
+        document.addEventListener('DOMContentLoaded', function() {
+            loadActiveUsers();
+        });
+    </script>
+</body>
+</html>

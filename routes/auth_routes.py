@@ -1,8 +1,10 @@
 """
 Rotas de autenticação (login/logout)
 """
+import uuid
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from .ldap_service import authenticate_ldap, is_admin_user
+from .database import register_session, remove_session, create_or_update_user
 
 # Criação do blueprint
 auth_bp = Blueprint('auth', __name__)
@@ -26,9 +28,28 @@ def login():
             # Verificar se é administrador
             is_admin = is_admin_user(user_data)
             
+            # Gerar ou recuperar session_id único
+            if 'session_id' not in session:
+                session['session_id'] = str(uuid.uuid4())
+            
             # Salvar dados do usuário na sessão
             session['user'] = user_data
             session['is_admin'] = is_admin
+            
+            # Obter informações da requisição
+            ip_address = request.remote_addr
+            user_agent = request.headers.get('User-Agent')
+            
+            # Registrar sessão ativa no banco
+            username = user_data.get('sAMAccountName', user_data.get('displayName', ''))
+            register_session(session['session_id'], username, ip_address, user_agent)
+            
+            # Criar ou atualizar usuário no banco
+            create_or_update_user(
+                username=username,
+                email=user_data.get('mail'),
+                department=user_data.get('department')
+            )
             
             flash(f'Bem-vindo, {user_data["displayName"]}!', 'success')
             
@@ -52,7 +73,13 @@ def login():
 @auth_bp.route('/logout')
 def logout():
     """Rota de logout"""
+    # Remover sessão do banco de dados
+    if 'session_id' in session:
+        remove_session(session['session_id'])
+    
     # Limpar sessão
     session.pop('user', None)
+    session.pop('is_admin', None)
+    session.pop('session_id', None)
     flash('Logout realizado com sucesso.', 'info')
     return redirect(url_for('auth.login'))

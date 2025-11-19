@@ -393,5 +393,168 @@ def log_action(username, action, details=None, ip_address=None):
     return execute_query(query, params, fetch_all=False)
 
 
+# ============= FUNÇÕES DE SESSÕES ATIVAS =============
+
+def register_session(session_id, username, ip_address=None, user_agent=None):
+    """
+    Registra uma nova sessão ativa no banco de dados
+    
+    Args:
+        session_id: ID único da sessão
+        username: Nome do usuário
+        ip_address: Endereço IP do usuário
+        user_agent: User agent do navegador
+    
+    Returns:
+        Número de linhas afetadas
+    """
+    query = """
+        INSERT INTO active_sessions (session_id, username, login_time, last_activity, ip_address, user_agent)
+        VALUES (:session_id, :username, NOW(), NOW(), :ip_address, :user_agent)
+        ON DUPLICATE KEY UPDATE
+            last_activity = NOW(),
+            ip_address = VALUES(ip_address),
+            user_agent = VALUES(user_agent)
+    """
+    params = {
+        'session_id': session_id,
+        'username': username,
+        'ip_address': ip_address,
+        'user_agent': user_agent
+    }
+    return execute_query(query, params, fetch_all=False)
+
+
+def update_session_activity(session_id):
+    """
+    Atualiza o timestamp de última atividade de uma sessão
+    
+    Args:
+        session_id: ID único da sessão
+    
+    Returns:
+        Número de linhas afetadas
+    """
+    query = """
+        UPDATE active_sessions 
+        SET last_activity = NOW()
+        WHERE session_id = :session_id
+    """
+    return execute_query(query, {'session_id': session_id}, fetch_all=False)
+
+
+def remove_session(session_id):
+    """
+    Remove uma sessão do banco de dados (logout)
+    
+    Args:
+        session_id: ID único da sessão
+    
+    Returns:
+        Número de linhas afetadas
+    """
+    query = "DELETE FROM active_sessions WHERE session_id = :session_id"
+    return execute_query(query, {'session_id': session_id}, fetch_all=False)
+
+
+def get_active_users(timeout_minutes=30):
+    """
+    Obtém lista de usuários atualmente logados
+    
+    Args:
+        timeout_minutes: Tempo em minutos para considerar uma sessão inativa (padrão: 30)
+    
+    Returns:
+        Lista de dicionários com informações dos usuários ativos
+    """
+    query = """
+        SELECT 
+            s.session_id,
+            s.username,
+            s.login_time,
+            s.last_activity,
+            s.ip_address,
+            s.user_agent,
+            u.email,
+            u.department,
+            u.position,
+            TIMESTAMPDIFF(MINUTE, s.last_activity, NOW()) as inactive_minutes
+        FROM active_sessions s
+        LEFT JOIN users u ON s.username = u.username
+        WHERE TIMESTAMPDIFF(MINUTE, s.last_activity, NOW()) < :timeout_minutes
+        ORDER BY s.last_activity DESC
+    """
+    return execute_query(query, {'timeout_minutes': timeout_minutes})
+
+
+def get_user_sessions(username):
+    """
+    Obtém todas as sessões ativas de um usuário específico
+    
+    Args:
+        username: Nome do usuário
+    
+    Returns:
+        Lista de sessões ativas do usuário
+    """
+    query = """
+        SELECT session_id, login_time, last_activity, ip_address, user_agent
+        FROM active_sessions
+        WHERE username = :username
+        ORDER BY last_activity DESC
+    """
+    return execute_query(query, {'username': username})
+
+
+def cleanup_inactive_sessions(timeout_minutes=30):
+    """
+    Remove sessões inativas do banco de dados
+    
+    Args:
+        timeout_minutes: Tempo em minutos para considerar uma sessão inativa (padrão: 30)
+    
+    Returns:
+        Número de sessões removidas
+    """
+    query = """
+        DELETE FROM active_sessions
+        WHERE TIMESTAMPDIFF(MINUTE, last_activity, NOW()) >= :timeout_minutes
+    """
+    return execute_query(query, {'timeout_minutes': timeout_minutes}, fetch_all=False)
+
+
+def get_active_users_count():
+    """
+    Obtém o número de usuários atualmente logados
+    
+    Returns:
+        Número de usuários ativos (sessões ativas nos últimos 30 minutos)
+    """
+    query = """
+        SELECT COUNT(DISTINCT username) as active_count
+        FROM active_sessions
+        WHERE TIMESTAMPDIFF(MINUTE, last_activity, NOW()) < 30
+    """
+    result = execute_query(query, fetch_one=True)
+    return result['active_count'] if result else 0
+
+
+def get_session_info(session_id):
+    """
+    Obtém informações de uma sessão específica
+    
+    Args:
+        session_id: ID único da sessão
+    
+    Returns:
+        Dicionário com informações da sessão ou None
+    """
+    query = """
+        SELECT * FROM active_sessions
+        WHERE session_id = :session_id
+    """
+    return execute_query(query, {'session_id': session_id}, fetch_one=True)
+
+
 # Inicializa o banco ao importar o módulo
 init_db()

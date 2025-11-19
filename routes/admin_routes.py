@@ -4,6 +4,7 @@ Rotas administrativas para gerenciamento do sistema
 from flask import Blueprint, render_template, jsonify, session
 from .middleware import admin_required, get_current_username
 from .config import VIDEOS_DIR, PROGRESS_FILE, WATCHED_THRESHOLD
+from .database import get_active_users, cleanup_inactive_sessions, get_active_users_count
 import json
 import os
 from datetime import datetime
@@ -517,3 +518,48 @@ def api_users_by_group():
     users_list.sort(key=lambda x: x['progress_percentage'], reverse=True)
     
     return jsonify(users_list)
+
+
+@admin_bp.route('/active-users')
+@admin_required
+def active_users_page():
+    """Página para visualizar usuários logados em tempo real"""
+    return render_template('admin_active_users.html')
+
+
+@admin_bp.route('/api/active-users')
+@admin_required
+def api_active_users():
+    """API para obter usuários atualmente logados"""
+    try:
+        # Limpar sessões inativas antes de consultar
+        cleanup_inactive_sessions(timeout_minutes=30)
+        
+        # Obter usuários ativos
+        active_users = get_active_users(timeout_minutes=30)
+        
+        # Formatar dados para resposta
+        users_data = []
+        for user in active_users:
+            users_data.append({
+                'username': user['username'],
+                'email': user.get('email', 'Não informado'),
+                'department': user.get('department', 'Não informado'),
+                'position': user.get('position', 'Não informado'),
+                'login_time': user['login_time'].strftime('%d/%m/%Y %H:%M:%S') if user['login_time'] else None,
+                'last_activity': user['last_activity'].strftime('%d/%m/%Y %H:%M:%S') if user['last_activity'] else None,
+                'inactive_minutes': user['inactive_minutes'],
+                'ip_address': user.get('ip_address', 'Desconhecido'),
+                'user_agent': user.get('user_agent', 'Desconhecido')[:100]  # Limitar tamanho
+            })
+        
+        return jsonify({
+            'success': True,
+            'total': len(users_data),
+            'users': users_data
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
