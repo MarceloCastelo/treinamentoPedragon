@@ -662,27 +662,23 @@
                                 required
                                 class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
                             <option value="" class="bg-blue-900">Selecione um setor</option>
-                            <option value="VENDAS CONSÓRCIO" class="bg-blue-900" {% if additional_data.setor == 'VENDAS CONSÓRCIO' %}selected{% endif %}>VENDAS CONSÓRCIO</option>
-                            <option value="VENDAS" class="bg-blue-900" {% if additional_data.setor == 'VENDAS' %}selected{% endif %}>VENDAS</option>
+                            <option value="VENDAS CONSÓRCIO" class="bg-blue-900" {% if additional_data.setor == 'VENDAS CONSÓRCIO' %}selected{% endif %}>CONSÓRCIO</option>
+                            <option value="SEGUROS - VENDAS" class="bg-blue-900" {% if additional_data.setor == 'SEGUROS - VENDAS' %}selected{% endif %}>SEGUROS</option>
+                            <option value="VENDAS NOVOS" class="bg-blue-900" {% if additional_data.setor == 'VENDAS NOVOS' %}selected{% endif %}>VEÍCULOS NOVOS</option>
+                            <option value="VENDAS NOVOS" class="bg-blue-900" {% if additional_data.setor == 'VENDAS NOVOS' %}selected{% endif %}>VEÍCULOS SEMINOVOS</option>
                             <option value="TI" class="bg-blue-900" {% if additional_data.setor == 'TI' %}selected{% endif %}>TI</option>
-                            <option value="SEGUROS - VENDAS" class="bg-blue-900" {% if additional_data.setor == 'SEGUROS - VENDAS' %}selected{% endif %}>SEGUROS - VENDAS</option>
-                            <option value="PRODUTIVO" class="bg-blue-900" {% if additional_data.setor == 'PRODUTIVO' %}selected{% endif %}>PRODUTIVO</option>
-                            <option value="PLANEJAMENTO E GESTÃO" class="bg-blue-900" {% if additional_data.setor == 'PLANEJAMENTO E GESTÃO' %}selected{% endif %}>PLANEJAMENTO E GESTÃO</option>
-                            <option value="PESSOAL" class="bg-blue-900" {% if additional_data.setor == 'PESSOAL' %}selected{% endif %}>PESSOAL</option>
-                            <option value="JURIDICO" class="bg-blue-900" {% if additional_data.setor == 'JURIDICO' %}selected{% endif %}>JURIDICO</option>
-                            <option value="GENTE E GESTÃO" class="bg-blue-900" {% if additional_data.setor == 'GENTE E GESTÃO' %}selected{% endif %}>GENTE E GESTÃO</option>
+                            <option value="OFICINA" class="bg-blue-900" {% if additional_data.setor == 'OFICINA' %}selected{% endif %}>OFICINA</option>
+                            <option value="DEPARTAMENTO PESSOAL" class="bg-blue-900" {% if additional_data.setor == 'DEPARTAMENTO PESSOAL' %}selected{% endif %}>DEPARTAMENTO PESSOAL</option>
+                            <option value="JURIDICO" class="bg-blue-900" {% if additional_data.setor == 'JURIDICO' %}selected{% endif %}>JURÍDICO</option>
+                            <option value="RECURSOS HUMANOS" class="bg-blue-900" {% if additional_data.setor == 'RECURSOS HUMANOS' %}selected{% endif %}>RECURSOS HUMANOS</option>
                             <option value="FISCAL" class="bg-blue-900" {% if additional_data.setor == 'FISCAL' %}selected{% endif %}>FISCAL</option>
                             <option value="FINANCEIRO" class="bg-blue-900" {% if additional_data.setor == 'FINANCEIRO' %}selected{% endif %}>FINANCEIRO</option>
                             <option value="DIRETORIA" class="bg-blue-900" {% if additional_data.setor == 'DIRETORIA' %}selected{% endif %}>DIRETORIA</option>
                             <option value="CONTROLADORIA" class="bg-blue-900" {% if additional_data.setor == 'CONTROLADORIA' %}selected{% endif %}>CONTROLADORIA</option>
-                            <option value="CONTABIL" class="bg-blue-900" {% if additional_data.setor == 'CONTABIL' %}selected{% endif %}>CONTABIL</option>
+                            <option value="CONTABIL" class="bg-blue-900" {% if additional_data.setor == 'CONTABIL' %}selected{% endif %}>CONTABILIDADE</option>
                             <option value="AUDITORIA INTERNA" class="bg-blue-900" {% if additional_data.setor == 'AUDITORIA INTERNA' %}selected{% endif %}>AUDITORIA INTERNA</option>
-                            <option value="ADMINSTRAÇAO" class="bg-blue-900" {% if additional_data.setor == 'ADMINSTRAÇAO' %}selected{% endif %}>ADMINSTRAÇAO</option>
-                            <option value="ADMINISTRATIVO" class="bg-blue-900" {% if additional_data.setor == 'ADMINISTRATIVO' %}selected{% endif %}>ADMINISTRATIVO</option>
-                            <option value="ADMINISTRAÇÃO SEGUROS" class="bg-blue-900" {% if additional_data.setor == 'ADMINISTRAÇÃO SEGUROS' %}selected{% endif %}>ADMINISTRAÇÃO SEGUROS</option>
-                            <option value="ADMINISTRACAO LOJA" class="bg-blue-900" {% if additional_data.setor == 'ADMINISTRACAO LOJA' %}selected{% endif %}>ADMINISTRACAO LOJA</option>
-                            <option value="ADMINISTRACAO CONSÓRCIO" class="bg-blue-900" {% if additional_data.setor == 'ADMINISTRACAO CONSÓRCIO' %}selected{% endif %}>ADMINISTRACAO CONSÓRCIO</option>
-                            <option value="ADMINISTRACAO" class="bg-blue-900" {% if additional_data.setor == 'ADMINISTRACAO' %}selected{% endif %}>ADMINISTRACAO</option>
+                            <option value="COMPRAS" class="bg-blue-900" {% if additional_data.setor == 'COMPRAS' %}selected{% endif %}>COMPRAS</option>
+                            <option value="ADMINISTRATIVO" class="bg-blue-900" {% if additional_data.setor == 'ADMINISTRATIVO' %}selected{% endif %}>ADMINISTRATIVO DE LOJA</option>
                         </select>
                     </div>
 
