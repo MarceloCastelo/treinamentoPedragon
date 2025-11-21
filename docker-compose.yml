@@ -36,6 +36,10 @@ services:
       DB_NAME: treinamento_adtsa
       DB_USER: adtsa_user
       DB_PASSWORD: adtsa_pass123
+      # Configurações LDAP/Active Directory
+      LDAP_SERVER: ldap://s02rec1.adt.com.br:389
+      LDAP_DOMAIN: adt.com.br
+      LDAP_SEARCH_BASE: DC=adt,DC=com,DC=br
       # Outras configurações
       SECRET_KEY: chave-secreta-producao-docker-2024
       FLASK_ENV: production
