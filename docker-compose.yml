@@ -46,6 +46,7 @@ services:
     volumes:
       - ./static:/app/static
       - ./templates:/app/templates
+      - C:\Users\adtsa\Videos\Treinamento - Dealernet:/app/videos
     depends_on:
       mysql:
         condition: service_healthy

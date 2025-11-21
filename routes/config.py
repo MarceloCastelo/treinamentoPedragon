@@ -4,7 +4,7 @@ Configurações centralizadas da aplicação
 import os
 
 # Diretório onde os vídeos estão armazenados
-VIDEOS_DIR = r"\\10.81.2.249\troca\Treinamento - Dealernet"
+VIDEOS_DIR = r"/app/videos"
 
 # Extensões de vídeo suportadas
 VIDEO_EXTENSIONS = ['.mp4', '.webm', '.mkv', '.avi', '.mov', '.flv']
