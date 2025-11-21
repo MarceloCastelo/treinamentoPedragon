@@ -39,17 +39,18 @@ def login():
             # Obter informações da requisição
             ip_address = request.remote_addr
             user_agent = request.headers.get('User-Agent')
-            
-            # Registrar sessão ativa no banco
             username = user_data.get('sAMAccountName', user_data.get('displayName', ''))
-            register_session(session['session_id'], username, ip_address, user_agent)
             
-            # Criar ou atualizar usuário no banco
+            # IMPORTANTE: Criar/atualizar usuário ANTES de registrar sessão
+            # (devido à foreign key constraint)
             create_or_update_user(
                 username=username,
                 email=user_data.get('mail'),
                 department=user_data.get('department')
             )
+            
+            # Registrar sessão ativa no banco
+            register_session(session['session_id'], username, ip_address, user_agent)
             
             flash(f'Bem-vindo, {user_data["displayName"]}!', 'success')
             

@@ -13,9 +13,9 @@ def login_required(f):
         if 'user' not in session:
             return redirect(url_for('auth.login'))
         
-        # Atualizar atividade da sessão
-        if hasattr(session, 'sid'):
-            update_session_activity(session.sid)
+        # Atualizar atividade da sessão usando o session_id correto
+        if 'session_id' in session:
+            update_session_activity(session['session_id'])
         
         return f(*args, **kwargs)
     return decorated_function

@@ -398,6 +398,7 @@ def log_action(username, action, details=None, ip_address=None):
 def register_session(session_id, username, ip_address=None, user_agent=None):
     """
     Registra uma nova sessão ativa no banco de dados
+    Remove outras sessões antigas do mesmo usuário para evitar duplicação
     
     Args:
         session_id: ID único da sessão
@@ -408,21 +409,35 @@ def register_session(session_id, username, ip_address=None, user_agent=None):
     Returns:
         Número de linhas afetadas
     """
-    query = """
-        INSERT INTO active_sessions (session_id, username, login_time, last_activity, ip_address, user_agent)
-        VALUES (:session_id, :username, NOW(), NOW(), :ip_address, :user_agent)
-        ON DUPLICATE KEY UPDATE
-            last_activity = NOW(),
-            ip_address = VALUES(ip_address),
-            user_agent = VALUES(user_agent)
-    """
-    params = {
-        'session_id': session_id,
-        'username': username,
-        'ip_address': ip_address,
-        'user_agent': user_agent
-    }
-    return execute_query(query, params, fetch_all=False)
+    try:
+        # Primeiro, remove qualquer sessão antiga deste usuário
+        cleanup_query = """
+            DELETE FROM active_sessions 
+            WHERE username = :username AND session_id != :session_id
+        """
+        execute_query(cleanup_query, {'username': username, 'session_id': session_id}, fetch_all=False)
+        
+        # Agora insere/atualiza a sessão atual
+        query = """
+            INSERT INTO active_sessions (session_id, username, login_time, last_activity, ip_address, user_agent)
+            VALUES (:session_id, :username, NOW(), NOW(), :ip_address, :user_agent)
+            ON DUPLICATE KEY UPDATE
+                last_activity = NOW(),
+                ip_address = VALUES(ip_address),
+                user_agent = VALUES(user_agent)
+        """
+        params = {
+            'session_id': session_id,
+            'username': username,
+            'ip_address': ip_address,
+            'user_agent': user_agent
+        }
+        result = execute_query(query, params, fetch_all=False)
+        print(f"✓ Sessão registrada: {username} (session_id: {session_id[:8]}...)")
+        return result
+    except Exception as e:
+        print(f"✗ Erro ao registrar sessão para {username}: {e}")
+        return None
 
 
 def update_session_activity(session_id):
@@ -459,14 +474,19 @@ def remove_session(session_id):
 
 def get_active_users(timeout_minutes=30):
     """
-    Obtém lista de usuários atualmente logados
+    Obtém lista de usuários atualmente logados (uma entrada por usuário)
+    Remove automaticamente sessões expiradas antes de buscar
     
     Args:
         timeout_minutes: Tempo em minutos para considerar uma sessão inativa (padrão: 30)
     
     Returns:
-        Lista de dicionários com informações dos usuários ativos
+        Lista de dicionários com informações dos usuários ativos únicos
     """
+    # Primeiro limpa sessões inativas
+    cleanup_inactive_sessions(timeout_minutes)
+    
+    # Busca apenas a sessão mais recente de cada usuário
     query = """
         SELECT 
             s.session_id,
@@ -480,8 +500,13 @@ def get_active_users(timeout_minutes=30):
             u.position,
             TIMESTAMPDIFF(MINUTE, s.last_activity, NOW()) as inactive_minutes
         FROM active_sessions s
+        INNER JOIN (
+            SELECT username, MAX(last_activity) as max_activity
+            FROM active_sessions
+            WHERE TIMESTAMPDIFF(MINUTE, last_activity, NOW()) < :timeout_minutes
+            GROUP BY username
+        ) latest ON s.username = latest.username AND s.last_activity = latest.max_activity
         LEFT JOIN users u ON s.username = u.username
-        WHERE TIMESTAMPDIFF(MINUTE, s.last_activity, NOW()) < :timeout_minutes
         ORDER BY s.last_activity DESC
     """
     return execute_query(query, {'timeout_minutes': timeout_minutes})
@@ -523,19 +548,26 @@ def cleanup_inactive_sessions(timeout_minutes=30):
     return execute_query(query, {'timeout_minutes': timeout_minutes}, fetch_all=False)
 
 
-def get_active_users_count():
+def get_active_users_count(timeout_minutes=30):
     """
     Obtém o número de usuários atualmente logados
+    Remove automaticamente sessões expiradas antes de contar
+    
+    Args:
+        timeout_minutes: Tempo em minutos para considerar uma sessão inativa (padrão: 30)
     
     Returns:
-        Número de usuários ativos (sessões ativas nos últimos 30 minutos)
+        Número de usuários ativos (sessões ativas)
     """
+    # Primeiro limpa sessões inativas
+    cleanup_inactive_sessions(timeout_minutes)
+    
     query = """
         SELECT COUNT(DISTINCT username) as active_count
         FROM active_sessions
-        WHERE TIMESTAMPDIFF(MINUTE, last_activity, NOW()) < 30
+        WHERE TIMESTAMPDIFF(MINUTE, last_activity, NOW()) < :timeout_minutes
     """
-    result = execute_query(query, fetch_one=True)
+    result = execute_query(query, {'timeout_minutes': timeout_minutes}, fetch_one=True)
     return result['active_count'] if result else 0
 
 
