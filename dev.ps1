@@ -9,6 +9,9 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+# Define variável de ambiente VIDEOS_DIR para o caminho dinâmico do usuário atual
+$env:VIDEOS_DIR = "$env:USERPROFILE\Videos\Treinamento - Dealernet"
+
 # Cores para output
 function Write-Success { param($msg) Write-Host $msg -ForegroundColor Green }
 function Write-Info { param($msg) Write-Host $msg -ForegroundColor Cyan }
@@ -28,120 +31,62 @@ Write-Host ""
 
 # Verifica se o arquivo docker-compose.dev.yml existe
 if (-not (Test-Path $DEV_COMPOSE)) {
-    Write-Error "Arquivo $DEV_COMPOSE não encontrado!"
+    Write-Error "Arquivo $DEV_COMPOSE nao encontrado!"
     exit 1
 }
 
 switch ($Action) {
+
     'start' {
-        Write-Info "🚀 Iniciando ambiente de desenvolvimento..."
+        Write-Info "Iniciando ambiente de desenvolvimento..."
         docker-compose -f $DEV_COMPOSE --env-file $DEV_ENV up -d
-        
-        if ($LASTEXITCODE -eq 0) {
-            Write-Host ""
-            Write-Success "✅ Ambiente de desenvolvimento iniciado!"
-            Write-Host ""
-            Write-Info "📋 Informações:"
-            Write-Host "  • Aplicação: http://localhost:5001" -ForegroundColor White
-            Write-Host "  • MySQL Dev: localhost:3309" -ForegroundColor White
-            Write-Host "  • Database:  treinamento_adtsa_dev" -ForegroundColor White
-            Write-Host "  • User:      dev_user" -ForegroundColor White
-            Write-Host ""
-            Write-Info "💡 Comandos úteis:"
-            Write-Host "  • Ver logs:     .\dev.ps1 logs" -ForegroundColor White
-            Write-Host "  • Parar:        .\dev.ps1 stop" -ForegroundColor White
-            Write-Host "  • Reiniciar:    .\dev.ps1 restart" -ForegroundColor White
-            Write-Host "  • Status:       .\dev.ps1 status" -ForegroundColor White
-        } else {
-            Write-Error "❌ Erro ao iniciar ambiente de desenvolvimento"
-            exit 1
-        }
+        Write-Success "Ambiente iniciado!"
     }
-    
+
     'stop' {
-        Write-Info "🛑 Parando ambiente de desenvolvimento..."
+        Write-Info "Parando ambiente..."
         docker-compose -f $DEV_COMPOSE down
-        
-        if ($LASTEXITCODE -eq 0) {
-            Write-Success "✅ Ambiente de desenvolvimento parado!"
-        } else {
-            Write-Error "❌ Erro ao parar ambiente"
-            exit 1
-        }
+        Write-Success "Ambiente parado!"
     }
-    
+
     'restart' {
-        Write-Info "🔄 Reiniciando ambiente de desenvolvimento..."
+        Write-Info "Reiniciando..."
         docker-compose -f $DEV_COMPOSE down
         Start-Sleep -Seconds 2
         docker-compose -f $DEV_COMPOSE --env-file $DEV_ENV up -d
-        
-        if ($LASTEXITCODE -eq 0) {
-            Write-Success "✅ Ambiente reiniciado!"
-            Write-Host ""
-            Write-Info "Aplicação disponível em: http://localhost:5001"
-        } else {
-            Write-Error "❌ Erro ao reiniciar ambiente"
-            exit 1
-        }
+        Write-Success "Ambiente reiniciado!"
     }
-    
+
     'logs' {
-        Write-Info "📋 Exibindo logs do ambiente de desenvolvimento..."
-        Write-Info "Pressione Ctrl+C para sair"
-        Write-Host ""
+        Write-Info "Exibindo logs (Ctrl+C para sair)..."
         docker-compose -f $DEV_COMPOSE logs -f
     }
-    
+
     'status' {
-        Write-Info "📊 Status do ambiente de desenvolvimento:"
-        Write-Host ""
+        Write-Info "Status do ambiente:"
         docker-compose -f $DEV_COMPOSE ps
-        Write-Host ""
-        
-        # Verifica se os containers estão rodando
-        $webRunning = docker ps --filter "name=treinamento_adtsa_web_dev" --filter "status=running" -q
-        $mysqlRunning = docker ps --filter "name=treinamento_adtsa_mysql_dev" --filter "status=running" -q
-        
-        if ($webRunning -and $mysqlRunning) {
-            Write-Success "✅ Ambiente DEV está RODANDO"
-            Write-Host "  • Web:   http://localhost:5001" -ForegroundColor Green
-            Write-Host "  • MySQL: localhost:3309" -ForegroundColor Green
-        } else {
-            Write-Warning "⚠️  Ambiente DEV não está completamente ativo"
-            if (-not $webRunning) { Write-Host "  • Container web_dev: PARADO" -ForegroundColor Red }
-            if (-not $mysqlRunning) { Write-Host "  • Container mysql_dev: PARADO" -ForegroundColor Red }
-        }
     }
-    
+
     'rebuild' {
-        Write-Warning "🔨 Reconstruindo imagens do ambiente de desenvolvimento..."
+        Write-Warning "Reconstruindo imagens..."
         docker-compose -f $DEV_COMPOSE down
         docker-compose -f $DEV_COMPOSE build --no-cache
         docker-compose -f $DEV_COMPOSE --env-file $DEV_ENV up -d
-        
-        if ($LASTEXITCODE -eq 0) {
-            Write-Success "✅ Ambiente reconstruído e iniciado!"
-            Write-Info "Aplicação disponível em: http://localhost:5001"
-        } else {
-            Write-Error "❌ Erro ao reconstruir ambiente"
-            exit 1
-        }
+        Write-Success "Imagens reconstruidas!"
     }
-    
+
     'clean' {
-        Write-Warning "🧹 Limpando completamente o ambiente de desenvolvimento..."
-        Write-Warning "ATENÇÃO: Isso irá remover TODOS os dados do banco DEV!"
-        $confirm = Read-Host "Tem certeza? (digite 'SIM' para confirmar)"
+        Write-Warning "Limpando ambiente DEV (dados serao excluidos!)"
+        $confirm = Read-Host "Digite 'SIM' para confirmar"
         
         if ($confirm -eq 'SIM') {
             docker-compose -f $DEV_COMPOSE down -v
-            Write-Success "✅ Ambiente limpo! Todos os dados foram removidos."
-            Write-Info "Use '.\dev.ps1 start' para iniciar novamente"
+            Write-Success "Ambiente limpo!"
         } else {
-            Write-Info "Operação cancelada."
+            Write-Info "Cancelado"
         }
     }
 }
 
 Write-Host ""
+exit 0
