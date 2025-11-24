@@ -104,8 +104,7 @@
                             </span>
                             {% endif %}
                         </div>
-                        <p class="text-blue-200">{{ videos|length }} vídeo{{ 's' if videos|length > 1 else '' }} disponível{{ 'is' if videos|length > 1 else '' }}</p>
-                        {% if completion > 0 and completion < 100 %}
+<p class="text-blue-200">{{ videos|length }} vídeo{{ 's' if videos|length > 1 else '' }} disponíve{{ 'is' if videos|length > 1 else 'l' }}</p>                        {% if completion > 0 and completion < 100 %}
                         <div class="flex items-center gap-2 mt-2">
                             <div class="flex-1 bg-white/10 rounded-full h-2 max-w-xs">
                                 <div class="bg-gradient-to-r from-blue-400 to-cyan-500 h-2 rounded-full transition-all duration-500" 

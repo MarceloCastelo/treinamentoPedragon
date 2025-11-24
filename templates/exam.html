@@ -1,406 +1,490 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>📝 Prova: {{ topic_name }} - ADTSA</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
-    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <script
+      type="module"
+      src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"
+    ></script>
+    <script
+      nomodule
+      src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"
+    ></script>
     <style>
-        .gradient-bg {
-            background: linear-gradient(135deg, #032B56 0%, #1e40af 50%, #1e3a8a 100%);
-        }
-        
-        .page-animate {
-            animation: fadeIn 0.5s ease-out;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .question-card {
-            transition: all 0.3s ease;
-        }
-        
-        .question-card:hover {
-            transform: translateY(-2px);
-        }
-        
-        .option-label {
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .option-label:hover {
-            background-color: rgba(59, 130, 246, 0.1);
-        }
-        
-        input[type="radio"]:checked + .option-text {
-            background-color: rgba(59, 130, 246, 0.2);
-            border-color: #3b82f6;
-        }
+      .gradient-bg {
+        background: linear-gradient(
+          135deg,
+          #032b56 0%,
+          #1e40af 50%,
+          #1e3a8a 100%
+        );
+      }
 
-        /* Proteção contra cópia e seleção */
-        body {
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-        }
+      .page-animate {
+        animation: fadeIn 0.5s ease-out;
+      }
 
-        /* Permitir seleção apenas nos inputs */
-        input, select {
-            -webkit-user-select: auto;
-            -moz-user-select: auto;
-            -ms-user-select: auto;
-            user-select: auto;
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
         }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .question-card {
+        transition: all 0.3s ease;
+      }
+
+      .question-card:hover {
+        transform: translateY(-2px);
+      }
+
+      .option-label {
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .option-label:hover {
+        background-color: rgba(59, 130, 246, 0.1);
+      }
+
+      input[type="radio"]:checked + .option-text {
+        background-color: rgba(59, 130, 246, 0.2);
+        border-color: #3b82f6;
+      }
+
+      /* Proteção contra cópia e seleção */
+      body {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+
+      /* Permitir seleção apenas nos inputs */
+      input,
+      select {
+        -webkit-user-select: auto;
+        -moz-user-select: auto;
+        -ms-user-select: auto;
+        user-select: auto;
+      }
     </style>
-</head>
-<body class="gradient-bg min-h-screen">
+  </head>
+  <body class="gradient-bg min-h-screen">
     <!-- Navbar -->
     <div id="navbar-container"></div>
 
     <div class="container mx-auto px-4 py-8 mt-20 page-animate">
-        <!-- Header da Prova -->
-        <section class="mb-8">
-            <div class="bg-gradient-to-r from-purple-600/30 to-pink-600/30 rounded-2xl p-8 border border-white/20">
-                <div class="flex items-center mb-4">
-                    <div class="bg-white/20 p-4 rounded-xl mr-4">
-                        <ion-icon name="document-text-outline" class="text-4xl text-white"></ion-icon>
-                    </div>
-                    <div>
-                        <h2 class="text-3xl font-bold text-white mb-2">Prova: {{ topic_name }}</h2>
-                        <p class="text-purple-200">{{ questoes|length }} questão{{ 's' if questoes|length > 1 else '' }} • Tentativa {{ num_tentativas + 1 }} de {{ max_tentativas }}</p>
-                    </div>
-                </div>
-                
-                {% if previous_attempt %}
-                <div class="bg-white/10 rounded-xl p-4 mt-4 border border-white/20">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-white font-semibold">Tentativa anterior:</p>
-                            <p class="text-purple-200">Nota: {{ "%.1f"|format(previous_attempt.nota) }}% - 
-                                {{ previous_attempt.acertos }}/{{ previous_attempt.total }} acertos
-                            </p>
-                            <p class="text-sm text-purple-300">{{ previous_attempt.data }}</p>
-                        </div>
-                        <a href="{{ url_for('exam.exam_result', topic_name=topic_name) }}" 
-                           class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg transition-colors">
-                            Ver Resultado
-                        </a>
-                    </div>
-                </div>
-                {% endif %}
-                
-                <div class="bg-yellow-500/20 border border-yellow-500/50 rounded-xl p-4 mt-4">
-                    <div class="flex items-start">
-                        <ion-icon name="information-circle-outline" class="text-2xl text-yellow-300 mr-3 mt-1"></ion-icon>
-                        <div class="text-yellow-100">
-                            <p class="font-semibold mb-1">Instruções:</p>
-                            <ul class="text-sm space-y-1 list-disc list-inside">
-                                <li>Leia atentamente cada questão</li>
-                                <li>Selecione apenas uma alternativa por questão</li>
-                                <li>Nota mínima para aprovação: 70%</li>
-                                <li>Você tem direito a {{ max_tentativas }} tentativas (tentativa {{ num_tentativas + 1 }})</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
+      <!-- Header da Prova -->
+      <section class="mb-8">
+        <div
+          class="bg-gradient-to-r from-purple-600/30 to-pink-600/30 rounded-2xl p-8 border border-white/20"
+        >
+          <div class="flex items-center mb-4">
+            <div class="bg-white/20 p-4 rounded-xl mr-4">
+              <ion-icon
+                name="document-text-outline"
+                class="text-4xl text-white"
+              ></ion-icon>
             </div>
-        </section>
+            <div>
+              <h2 class="text-3xl font-bold text-white mb-2">
+                Prova: {{ topic_name }}
+              </h2>
+              <p class="text-purple-200">
+                {{ questoes|length }} {{ 'questão' if questoes|length == 1 else
+                'questões' }} • Tentativa {{ num_tentativas + 1 }} de {{
+                max_tentativas }}
+              </p>
+            </div>
+          </div>
 
-        <!-- Formulário da Prova -->
-        <form id="exam-form">
-            <div class="space-y-6">
-                {% for questao in questoes %}
-                <div class="question-card bg-white/5 rounded-2xl border border-white/20 p-6">
-                    <div class="flex items-start mb-4">
-                        <div class="bg-blue-500/20 px-4 py-2 rounded-xl mr-4">
-                            <span class="text-2xl font-bold text-blue-300">{{ questao.numero }}</span>
-                        </div>
-                        <div class="flex-1">
-                            <p class="text-lg text-white font-medium">{{ questao.enunciado }}</p>
-                        </div>
-                    </div>
-                    
-                    <div class="ml-16 space-y-3">
-                        {% if questao.tipo == 'verdadeiro_falso' %}
-                            <label class="option-label flex items-center p-4 bg-white/5 rounded-xl border border-white/10">
-                                <input type="radio" 
-                                       name="questao_{{ questao.numero }}" 
-                                       value="Verdadeiro" 
-                                       class="w-5 h-5 text-blue-600"
-                                       required>
-                                <span class="option-text ml-3 text-white flex-1 p-2 rounded-lg">Verdadeiro</span>
-                            </label>
-                            
-                            <label class="option-label flex items-center p-4 bg-white/5 rounded-xl border border-white/10">
-                                <input type="radio" 
-                                       name="questao_{{ questao.numero }}" 
-                                       value="Falso" 
-                                       class="w-5 h-5 text-blue-600"
-                                       required>
-                                <span class="option-text ml-3 text-white flex-1 p-2 rounded-lg">Falso</span>
-                            </label>
-                        
-                        {% elif questao.tipo == 'multipla_escolha' %}
-                            {% for letra, texto in questao.opcoes.items() %}
-                            <label class="option-label flex items-center p-4 bg-white/5 rounded-xl border border-white/10">
-                                <input type="radio" 
-                                       name="questao_{{ questao.numero }}" 
-                                       value="{{ letra }}" 
-                                       class="w-5 h-5 text-blue-600"
-                                       required>
-                                <span class="option-text ml-3 text-white flex-1 p-2 rounded-lg">
-                                    <strong>{{ letra }})</strong> {{ texto }}
-                                </span>
-                            </label>
-                            {% endfor %}
-                        
-                        {% elif questao.tipo == 'correspondencia' %}
-                            <div class="space-y-4">
-                                <p class="text-sm text-blue-200 mb-3">Associe cada descrição com a resposta correta:</p>
-                                {% set respostas_disponiveis = questao.itens_correspondencia | map(attribute='resposta_correta') | list %}
-                                {% for item in questao.itens_correspondencia %}
-                                <div class="bg-white/5 rounded-xl p-4 border border-white/10">
-                                    <p class="text-white mb-3">{{ item.descricao }}</p>
-                                    <select name="questao_{{ questao.numero }}_item_{{ loop.index0 }}" 
-                                            class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 cursor-pointer"
-                                            required>
-                                        <option value="" class="bg-gray-800">Selecione uma opção...</option>
-                                        {% for resposta in respostas_disponiveis %}
-                                        <option value="{{ resposta }}" class="bg-gray-800">{{ resposta }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
+          {% if previous_attempt %}
+          <div class="bg-white/10 rounded-xl p-4 mt-4 border border-white/20">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-white font-semibold">Tentativa anterior:</p>
+                <p class="text-purple-200">
+                  Nota: {{ "%.1f"|format(previous_attempt.nota) }}% - {{
+                  previous_attempt.acertos }}/{{ previous_attempt.total }}
+                  acertos
+                </p>
+                <p class="text-sm text-purple-300">
+                  {{ previous_attempt.data }}
+                </p>
+              </div>
+              <a
+                href="{{ url_for('exam.exam_result', topic_name=topic_name) }}"
+                class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg transition-colors"
+              >
+                Ver Resultado
+              </a>
+            </div>
+          </div>
+          {% endif %}
+
+          <div
+            class="bg-yellow-500/20 border border-yellow-500/50 rounded-xl p-4 mt-4"
+          >
+            <div class="flex items-start">
+              <ion-icon
+                name="information-circle-outline"
+                class="text-2xl text-yellow-300 mr-3 mt-1"
+              ></ion-icon>
+              <div class="text-yellow-100">
+                <p class="font-semibold mb-1">Instruções:</p>
+                <ul class="text-sm space-y-1 list-disc list-inside">
+                  <li>Leia atentamente cada questão</li>
+                  <li>Selecione apenas uma alternativa por questão</li>
+                  <li>Nota mínima para aprovação: 70%</li>
+                  <li>
+                    Você tem direito a {{ max_tentativas }} tentativas
+                    (tentativa {{ num_tentativas + 1 }})
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Formulário da Prova -->
+      <form id="exam-form">
+        <div class="space-y-6">
+          {% for questao in questoes %}
+          <div
+            class="question-card bg-white/5 rounded-2xl border border-white/20 p-6"
+          >
+            <div class="flex items-start mb-4">
+              <div class="bg-blue-500/20 px-4 py-2 rounded-xl mr-4">
+                <span class="text-2xl font-bold text-blue-300"
+                  >{{ questao.numero }}</span
+                >
+              </div>
+              <div class="flex-1">
+                <p class="text-lg text-white font-medium">
+                  {{ questao.enunciado }}
+                </p>
+              </div>
+            </div>
+
+            <div class="ml-16 space-y-3">
+              {% if questao.tipo == 'verdadeiro_falso' %}
+              <label
+                class="option-label flex items-center p-4 bg-white/5 rounded-xl border border-white/10"
+              >
+                <input
+                  type="radio"
+                  name="questao_{{ questao.numero }}"
+                  value="Verdadeiro"
+                  class="w-5 h-5 text-blue-600"
+                  required
+                />
+                <span class="option-text ml-3 text-white flex-1 p-2 rounded-lg"
+                  >Verdadeiro</span
+                >
+              </label>
+
+              <label
+                class="option-label flex items-center p-4 bg-white/5 rounded-xl border border-white/10"
+              >
+                <input
+                  type="radio"
+                  name="questao_{{ questao.numero }}"
+                  value="Falso"
+                  class="w-5 h-5 text-blue-600"
+                  required
+                />
+                <span class="option-text ml-3 text-white flex-1 p-2 rounded-lg"
+                  >Falso</span
+                >
+              </label>
+
+              {% elif questao.tipo == 'multipla_escolha' %} {% for letra, texto
+              in questao.opcoes.items() %}
+              <label
+                class="option-label flex items-center p-4 bg-white/5 rounded-xl border border-white/10"
+              >
+                <input
+                  type="radio"
+                  name="questao_{{ questao.numero }}"
+                  value="{{ letra }}"
+                  class="w-5 h-5 text-blue-600"
+                  required
+                />
+                <span class="option-text ml-3 text-white flex-1 p-2 rounded-lg">
+                  <strong>{{ letra }})</strong> {{ texto }}
+                </span>
+              </label>
+              {% endfor %} {% elif questao.tipo == 'correspondencia' %}
+              <div class="space-y-4">
+                <p class="text-sm text-blue-200 mb-3">
+                  Associe cada descrição com a resposta correta:
+                </p>
+                {% set respostas_disponiveis = questao.itens_correspondencia |
+                map(attribute='resposta_correta') | list %} {% for item in
+                questao.itens_correspondencia %}
+                <div class="bg-white/5 rounded-xl p-4 border border-white/10">
+                  <p class="text-white mb-3">{{ item.descricao }}</p>
+                  <select
+                    name="questao_{{ questao.numero }}_item_{{ loop.index0 }}"
+                    class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 cursor-pointer"
+                    required
+                  >
+                    <option value="" class="bg-gray-800">
+                      Selecione uma opção...
+                    </option>
+                    {% for resposta in respostas_disponiveis %}
+                    <option value="{{ resposta }}" class="bg-gray-800">
+                      {{ resposta }}
+                    </option>
+                    {% endfor %}
+                  </select>
                 </div>
                 {% endfor %}
+              </div>
+              {% endif %}
             </div>
-            
-            <!-- Botões de Ação -->
-            <div class="mt-8 flex justify-between items-center">
-                <a href="{{ url_for('video.topic_detail', topic_name=topic_name) }}" 
-                   class="bg-gray-500/30 hover:bg-gray-500/50 text-white px-6 py-3 rounded-xl transition-colors flex items-center">
-                    <ion-icon name="arrow-back-outline" class="text-xl mr-2"></ion-icon>
-                    Voltar ao Módulo
-                </a>
-                
-                <button type="submit" 
-                        class="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-8 py-3 rounded-xl font-semibold transition-all flex items-center shadow-lg">
-                    <ion-icon name="checkmark-circle-outline" class="text-2xl mr-2"></ion-icon>
-                    Enviar Prova
-                </button>
-            </div>
-        </form>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Botões de Ação -->
+        <div class="mt-8 flex justify-between items-center">
+          <a
+            href="{{ url_for('video.topic_detail', topic_name=topic_name) }}"
+            class="bg-gray-500/30 hover:bg-gray-500/50 text-white px-6 py-3 rounded-xl transition-colors flex items-center"
+          >
+            <ion-icon name="arrow-back-outline" class="text-xl mr-2"></ion-icon>
+            Voltar ao Módulo
+          </a>
+
+          <button
+            type="submit"
+            class="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-8 py-3 rounded-xl font-semibold transition-all flex items-center shadow-lg"
+          >
+            <ion-icon
+              name="checkmark-circle-outline"
+              class="text-2xl mr-2"
+            ></ion-icon>
+            Enviar Prova
+          </button>
+        </div>
+      </form>
     </div>
 
     <!-- Modal de Resultado -->
-    <div id="result-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-        <div class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-8 max-w-2xl w-full border border-white/20 shadow-2xl">
-            <div id="result-content" class="text-center"></div>
-        </div>
+    <div
+      id="result-modal"
+      class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
+    >
+      <div
+        class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-8 max-w-2xl w-full border border-white/20 shadow-2xl"
+      >
+        <div id="result-content" class="text-center"></div>
+      </div>
     </div>
 
     <script>
-        // Proteção contra print screen e cópia
-        document.addEventListener('DOMContentLoaded', function() {
-            // Desabilitar clique direito
-            document.addEventListener('contextmenu', function(e) {
-                e.preventDefault();
-                return false;
-            });
+      // Proteção contra print screen e cópia
+      document.addEventListener('DOMContentLoaded', function() {
+          // Desabilitar clique direito
+          document.addEventListener('contextmenu', function(e) {
+              e.preventDefault();
+              return false;
+          });
 
-            // Desabilitar teclas de atalho
-            document.addEventListener('keydown', function(e) {
-                // Print Screen
-                if (e.key === 'PrintScreen') {
-                    e.preventDefault();
-                    alert('⚠️ Capturas de tela não são permitidas durante a prova!');
-                    return false;
-                }
+          // Desabilitar teclas de atalho
+          document.addEventListener('keydown', function(e) {
+              // Print Screen
+              if (e.key === 'PrintScreen') {
+                  e.preventDefault();
+                  alert('⚠️ Capturas de tela não são permitidas durante a prova!');
+                  return false;
+              }
 
-                // Ctrl+P (Imprimir)
-                if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
-                    e.preventDefault();
-                    alert('⚠️ Impressão não é permitida durante a prova!');
-                    return false;
-                }
+              // Ctrl+P (Imprimir)
+              if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+                  e.preventDefault();
+                  alert('⚠️ Impressão não é permitida durante a prova!');
+                  return false;
+              }
 
-                // Ctrl+S (Salvar)
-                if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-                    e.preventDefault();
-                    alert('⚠️ Salvar página não é permitido durante a prova!');
-                    return false;
-                }
+              // Ctrl+S (Salvar)
+              if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                  e.preventDefault();
+                  alert('⚠️ Salvar página não é permitido durante a prova!');
+                  return false;
+              }
 
-                // Ctrl+C (Copiar)
-                if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
-                    e.preventDefault();
-                    alert('⚠️ Cópia de texto não é permitida durante a prova!');
-                    return false;
-                }
+              // Ctrl+C (Copiar)
+              if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+                  e.preventDefault();
+                  alert('⚠️ Cópia de texto não é permitida durante a prova!');
+                  return false;
+              }
 
-                // Ctrl+Shift+I (DevTools)
-                if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'I') {
-                    e.preventDefault();
-                    return false;
-                }
+              // Ctrl+Shift+I (DevTools)
+              if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'I') {
+                  e.preventDefault();
+                  return false;
+              }
 
-                // F12 (DevTools)
-                if (e.key === 'F12') {
-                    e.preventDefault();
-                    return false;
-                }
-            });
+              // F12 (DevTools)
+              if (e.key === 'F12') {
+                  e.preventDefault();
+                  return false;
+              }
+          });
 
-            // Desabilitar cópia
-            document.addEventListener('copy', function(e) {
-                e.preventDefault();
-                return false;
-            });
+          // Desabilitar cópia
+          document.addEventListener('copy', function(e) {
+              e.preventDefault();
+              return false;
+          });
 
-            // Desabilitar recorte
-            document.addEventListener('cut', function(e) {
-                e.preventDefault();
-                return false;
-            });
+          // Desabilitar recorte
+          document.addEventListener('cut', function(e) {
+              e.preventDefault();
+              return false;
+          });
 
-            // Detectar quando a janela perde foco (possível tentativa de print)
-            let blurCount = 0;
-            window.addEventListener('blur', function() {
-                blurCount++;
-                if (blurCount > 3) {
-                    console.warn('Múltiplas saídas da janela detectadas');
-                }
-            });
-        });
+          // Detectar quando a janela perde foco (possível tentativa de print)
+          let blurCount = 0;
+          window.addEventListener('blur', function() {
+              blurCount++;
+              if (blurCount > 3) {
+                  console.warn('Múltiplas saídas da janela detectadas');
+              }
+          });
+      });
 
-        const topicName = "{{ topic_name }}";
-        const questoesData = {{ questoes | tojson }};
-        const numTentativas = {{ num_tentativas }};
-        const maxTentativas = {{ max_tentativas }};
-        
-        document.getElementById('exam-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            // Coletar respostas de acordo com o tipo de questão
-            const respostas = {};
-            let todasRespondidas = true;
-            
-            questoesData.forEach(questao => {
-                const numero = questao.numero;
-                
-                if (questao.tipo === 'verdadeiro_falso' || questao.tipo === 'multipla_escolha') {
-                    const resposta = document.querySelector(`input[name="questao_${numero}"]:checked`);
-                    if (!resposta) {
-                        todasRespondidas = false;
-                        return;
-                    }
-                    respostas[numero] = resposta.value;
-                } else if (questao.tipo === 'correspondencia') {
-                    // Coletar todas as respostas de correspondência dos selects
-                    const respostasCorrespondencia = [];
-                    questao.itens_correspondencia.forEach((item, index) => {
-                        const select = document.querySelector(`select[name="questao_${numero}_item_${index}"]`);
-                        if (!select || !select.value) {
-                            todasRespondidas = false;
-                            return;
-                        }
-                        respostasCorrespondencia.push(select.value);
-                    });
-                    respostas[numero] = respostasCorrespondencia;
-                }
-            });
-            
-            if (!todasRespondidas) {
-                alert('Por favor, responda todas as questões antes de enviar.');
-                return;
-            }
-            
-            // Enviar respostas
-            try {
-                const response = await fetch(`/submit-exam/${encodeURIComponent(topicName)}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ respostas })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    mostrarResultado(data);
-                } else {
-                    alert('Erro ao processar a prova: ' + (data.error || 'Erro desconhecido'));
-                }
-            } catch (error) {
-                console.error('Erro:', error);
-                alert('Erro ao enviar a prova. Por favor, tente novamente.');
-            }
-        });
-        
-        function mostrarResultado(data) {
-            const modal = document.getElementById('result-modal');
-            const content = document.getElementById('result-content');
-            
-            const aprovado = data.aprovado;
-            const nota = data.nota.toFixed(1);
-            
-            content.innerHTML = `
-                <div class="mb-6">
-                    <ion-icon name="${aprovado ? 'checkmark-circle' : 'close-circle'}" 
-                              class="text-8xl ${aprovado ? 'text-green-500' : 'text-red-500'}"></ion-icon>
-                </div>
-                <h3 class="text-3xl font-bold text-white mb-4">
-                    ${aprovado ? '🎉 Parabéns!' : '😔 Não foi dessa vez'}
-                </h3>
-                <div class="bg-white/10 rounded-xl p-6 mb-6">
-                    <p class="text-5xl font-bold ${aprovado ? 'text-green-400' : 'text-red-400'} mb-2">
-                        ${nota}%
-                    </p>
-                    <p class="text-xl text-white">
-                        ${data.acertos} de ${data.total} questões corretas
-                    </p>
-                </div>
-                <p class="text-gray-300 mb-6">
-                    ${aprovado ? 
-                        'Você foi aprovado neste módulo! Continue assim!' : 
-                        `Você precisa de pelo menos 70% para ser aprovado.${numTentativas + 1 < maxTentativas ? ' Você ainda tem ' + (maxTentativas - numTentativas - 1) + ' tentativa(s).' : ' Você usou todas as tentativas.'}`}
-                </p>
-                <div class="flex gap-4 justify-center flex-wrap">
-                    ${aprovado || (numTentativas + 1 >= maxTentativas) ? `
-                    <a href="/exam-result/${encodeURIComponent(topicName)}" 
-                       class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl transition-colors">
-                        Ver Detalhes
-                    </a>` : `
-                    <div class="bg-yellow-500/20 border border-yellow-500/50 px-4 py-2 rounded-xl text-yellow-200 text-sm flex items-center">
-                        <ion-icon name="lock-closed-outline" class="mr-2"></ion-icon>
-                        Detalhes disponíveis após todas tentativas
-                    </div>`}
-                    ${!aprovado && (numTentativas + 1 < maxTentativas) ? `
-                    <button onclick="location.reload()" 
-                            class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-xl transition-colors">
-                        Tentar Novamente
-                    </button>` : ''}
-                    <a href="/topic/${encodeURIComponent(topicName)}" 
-                       class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-xl transition-colors">
-                        Voltar ao Módulo
-                    </a>
-                </div>
-            `;
-            
-            modal.classList.remove('hidden');
-        }
+      const topicName = "{{ topic_name }}";
+      const questoesData = {{ questoes | tojson }};
+      const numTentativas = {{ num_tentativas }};
+      const maxTentativas = {{ max_tentativas }};
+
+      document.getElementById('exam-form').addEventListener('submit', async (e) => {
+          e.preventDefault();
+
+          // Coletar respostas de acordo com o tipo de questão
+          const respostas = {};
+          let todasRespondidas = true;
+
+          questoesData.forEach(questao => {
+              const numero = questao.numero;
+
+              if (questao.tipo === 'verdadeiro_falso' || questao.tipo === 'multipla_escolha') {
+                  const resposta = document.querySelector(`input[name="questao_${numero}"]:checked`);
+                  if (!resposta) {
+                      todasRespondidas = false;
+                      return;
+                  }
+                  respostas[numero] = resposta.value;
+              } else if (questao.tipo === 'correspondencia') {
+                  // Coletar todas as respostas de correspondência dos selects
+                  const respostasCorrespondencia = [];
+                  questao.itens_correspondencia.forEach((item, index) => {
+                      const select = document.querySelector(`select[name="questao_${numero}_item_${index}"]`);
+                      if (!select || !select.value) {
+                          todasRespondidas = false;
+                          return;
+                      }
+                      respostasCorrespondencia.push(select.value);
+                  });
+                  respostas[numero] = respostasCorrespondencia;
+              }
+          });
+
+          if (!todasRespondidas) {
+              alert('Por favor, responda todas as questões antes de enviar.');
+              return;
+          }
+
+          // Enviar respostas
+          try {
+              const response = await fetch(`/submit-exam/${encodeURIComponent(topicName)}`, {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({ respostas })
+              });
+
+              const data = await response.json();
+
+              if (data.success) {
+                  mostrarResultado(data);
+              } else {
+                  alert('Erro ao processar a prova: ' + (data.error || 'Erro desconhecido'));
+              }
+          } catch (error) {
+              console.error('Erro:', error);
+              alert('Erro ao enviar a prova. Por favor, tente novamente.');
+          }
+      });
+
+      function mostrarResultado(data) {
+          const modal = document.getElementById('result-modal');
+          const content = document.getElementById('result-content');
+
+          const aprovado = data.aprovado;
+          const nota = data.nota.toFixed(1);
+
+          content.innerHTML = `
+              <div class="mb-6">
+                  <ion-icon name="${aprovado ? 'checkmark-circle' : 'close-circle'}"
+                            class="text-8xl ${aprovado ? 'text-green-500' : 'text-red-500'}"></ion-icon>
+              </div>
+              <h3 class="text-3xl font-bold text-white mb-4">
+                  ${aprovado ? '🎉 Parabéns!' : '😔 Não foi dessa vez'}
+              </h3>
+              <div class="bg-white/10 rounded-xl p-6 mb-6">
+                  <p class="text-5xl font-bold ${aprovado ? 'text-green-400' : 'text-red-400'} mb-2">
+                      ${nota}%
+                  </p>
+                  <p class="text-xl text-white">
+                      ${data.acertos} de ${data.total} questões corretas
+                  </p>
+              </div>
+              <p class="text-gray-300 mb-6">
+                  ${aprovado ?
+                      'Você foi aprovado neste módulo! Continue assim!' :
+                      `Você precisa de pelo menos 70% para ser aprovado.${numTentativas + 1 < maxTentativas ? ' Você ainda tem ' + (maxTentativas - numTentativas - 1) + ' tentativa(s).' : ' Você usou todas as tentativas.'}`}
+              </p>
+              <div class="flex gap-4 justify-center flex-wrap">
+                  ${aprovado || (numTentativas + 1 >= maxTentativas) ? `
+                  <a href="/exam-result/${encodeURIComponent(topicName)}"
+                     class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl transition-colors">
+                      Ver Detalhes
+                  </a>` : `
+                  <div class="bg-yellow-500/20 border border-yellow-500/50 px-4 py-2 rounded-xl text-yellow-200 text-sm flex items-center">
+                      <ion-icon name="lock-closed-outline" class="mr-2"></ion-icon>
+                      Detalhes disponíveis após todas tentativas
+                  </div>`}
+                  ${!aprovado && (numTentativas + 1 < maxTentativas) ? `
+                  <button onclick="location.reload()"
+                          class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-xl transition-colors">
+                      Tentar Novamente
+                  </button>` : ''}
+                  <a href="/topic/${encodeURIComponent(topicName)}"
+                     class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-xl transition-colors">
+                      Voltar ao Módulo
+                  </a>
+              </div>
+          `;
+
+          modal.classList.remove('hidden');
+      }
     </script>
     <script src="{{ url_for('static', filename='js/navbar.js') }}"></script>
-</body>
+  </body>
 </html>
