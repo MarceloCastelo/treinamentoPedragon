@@ -244,7 +244,30 @@ def get_all_topics():
 @login_required
 @profile_complete_required
 def home():
-    """Página inicial protegida com listagem de vídeos por tópico (apenas cursos selecionados)"""
+    """Nova página inicial com Hero Section e cards informativos - otimizada"""
+    user = get_current_user()
+    
+    # Buscar apenas os primeiros 6 tópicos para cursos populares
+    # Otimização: não processar todos os tópicos, apenas o necessário
+    all_topics = get_all_topics()
+    
+    # Limitar a 6 cursos para melhor performance
+    popular_courses = []
+    for idx, (topic_name, videos) in enumerate(list(all_topics.items())[:6]):
+        popular_courses.append({
+            'topic_name': topic_name,
+            'video_count': len(videos),
+            'views': (6 - idx) * 150  # Simulado: views decrescentes
+        })
+    
+    return render_template('home.html', user=user, popular_courses=popular_courses)
+
+
+@video_bp.route('/all-courses')
+@login_required
+@profile_complete_required
+def all_courses():
+    """Página com todos os cursos disponíveis (antiga home)"""
     from .progress_routes import calculate_topic_completion
     from .middleware import get_current_username
     from .database import get_user
@@ -277,9 +300,9 @@ def home():
         topics = all_topics
     
     print(f"\n{'='*80}")
-    print(f"DEBUG HOME - Usuário: {username}")
-    print(f"DEBUG HOME - Cursos selecionados: {selected_courses}")
-    print(f"DEBUG HOME - Tópicos filtrados: {list(topics.keys())}")
+    print(f"DEBUG ALL-COURSES - Usuário: {username}")
+    print(f"DEBUG ALL-COURSES - Cursos selecionados: {selected_courses}")
+    print(f"DEBUG ALL-COURSES - Tópicos filtrados: {list(topics.keys())}")
     print(f"{'='*80}\n")
     
     # Calcular progresso de conclusão para cada tópico
@@ -290,17 +313,17 @@ def home():
             'videos': videos,
             'completion': completion_percentage
         }
-        print(f"DEBUG HOME - Tópico '{topic_name}': {len(videos)} vídeos, {completion_percentage}% concluído")
+        print(f"DEBUG ALL-COURSES - Tópico '{topic_name}': {len(videos)} vídeos, {completion_percentage}% concluído")
     
     if not topics:
         flash('Nenhum curso selecionado. Acesse seu perfil para selecionar os cursos que deseja fazer.', 'info')
     
-    print(f"\nDEBUG HOME - Estrutura final: {list(topics_with_progress.keys())}")
+    print(f"\nDEBUG ALL-COURSES - Estrutura final: {list(topics_with_progress.keys())}")
     for topic, data in topics_with_progress.items():
         print(f"  - {topic}: {data['completion']}% ({len(data['videos'])} vídeos)")
     print(f"{'='*80}\n")
     
-    return render_template('home.html', user=user, topics=topics_with_progress, selected_courses=selected_courses)
+    return render_template('all_courses.html', user=user, topics=topics_with_progress, selected_courses=selected_courses)
 
 
 @video_bp.route('/topic/<path:topic_name>')

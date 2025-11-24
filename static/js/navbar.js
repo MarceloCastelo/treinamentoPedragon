@@ -68,7 +68,7 @@ function createUserNavbar() {
                 <div class="flex justify-between items-center h-16">
                     <!-- Logo/Brand -->
                     <div class="flex-shrink-0">
-                        <a href="/" class="flex items-center">
+                        <a href="/home" class="flex items-center">
                             <img src="/static/images/logos/ADTSA - BRANCA.png" alt="ADTSA" class="h-6 w-auto">
                         </a>
                     </div>
@@ -76,12 +76,28 @@ function createUserNavbar() {
                     <!-- Desktop Navigation -->
                     <div class="hidden md:block">
                         <div class="ml-10 flex items-baseline space-x-4">
-                            <a href="/" class="nav-link px-3 py-2 text-sm font-medium text-white hover:text-blue-200 hover:bg-blue-700 rounded-md transition-colors duration-200">
+                            <a href="/home" class="nav-link px-3 py-2 text-sm font-medium text-white hover:text-blue-200 hover:bg-blue-700 rounded-md transition-colors duration-200">
                                 Home
                             </a>
-                            <a href="/my-courses" class="nav-link px-3 py-2 text-sm font-medium text-white hover:text-blue-200 hover:bg-blue-700 rounded-md transition-colors duration-200">
-                                Meus Cursos
-                            </a>
+                            
+                            <!-- Dropdown Cursos -->
+                            <div class="relative group">
+                                <button class="nav-link px-3 py-2 text-sm font-medium text-white hover:text-blue-200 hover:bg-blue-700 rounded-md transition-colors duration-200 flex items-center">
+                                    Cursos
+                                    <ion-icon name="chevron-down-outline" class="ml-1 text-sm"></ion-icon>
+                                </button>
+                                <div class="absolute left-0 mt-2 w-48 bg-[#032B56] border border-blue-700 rounded-md shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                                    <a href="/my-courses" class="block px-4 py-3 text-sm text-white hover:bg-blue-700 hover:text-blue-200 transition-colors duration-200 rounded-t-md">
+                                        <ion-icon name="book-outline" class="align-middle mr-2"></ion-icon>
+                                        Meus Cursos
+                                    </a>
+                                    <a href="/all-courses" class="block px-4 py-3 text-sm text-white hover:bg-blue-700 hover:text-blue-200 transition-colors duration-200 rounded-b-md">
+                                        <ion-icon name="library-outline" class="align-middle mr-2"></ion-icon>
+                                        Todos os Cursos
+                                    </a>
+                                </div>
+                            </div>
+                            
                             <a href="/profile" class="nav-link px-3 py-2 text-sm font-medium text-white hover:text-blue-200 hover:bg-blue-700 rounded-md transition-colors duration-200">
                                 Meu Perfil
                             </a>
@@ -105,12 +121,25 @@ function createUserNavbar() {
             <!-- Mobile menu -->
             <div id="navbar-mobile-menu" class="md:hidden hidden bg-[#032B56] border-b border-blue-800">
                 <div class="px-2 pt-2 pb-3 space-y-1">
-                    <a href="/" class="nav-link block px-3 py-2 text-base font-medium text-white hover:text-blue-200 hover:bg-blue-700 rounded-md transition-colors duration-200">
+                    <a href="/home" class="nav-link block px-3 py-2 text-base font-medium text-white hover:text-blue-200 hover:bg-blue-700 rounded-md transition-colors duration-200">
                         Home
                     </a>
-                    <a href="/my-courses" class="nav-link block px-3 py-2 text-base font-medium text-white hover:text-blue-200 hover:bg-blue-700 rounded-md transition-colors duration-200">
-                        Meus Cursos
-                    </a>
+                    
+                    <!-- Submenu Cursos Mobile -->
+                    <div class="pl-4 space-y-1">
+                        <div class="text-xs font-semibold text-blue-300 uppercase tracking-wider px-3 py-2">
+                            Cursos
+                        </div>
+                        <a href="/my-courses" class="nav-link block px-3 py-2 text-base font-medium text-white hover:text-blue-200 hover:bg-blue-700 rounded-md transition-colors duration-200">
+                            <ion-icon name="book-outline" class="align-middle mr-2"></ion-icon>
+                            Meus Cursos
+                        </a>
+                        <a href="/all-courses" class="nav-link block px-3 py-2 text-base font-medium text-white hover:text-blue-200 hover:bg-blue-700 rounded-md transition-colors duration-200">
+                            <ion-icon name="library-outline" class="align-middle mr-2"></ion-icon>
+                            Todos os Cursos
+                        </a>
+                    </div>
+                    
                     <a href="/profile" class="nav-link block px-3 py-2 text-base font-medium text-white hover:text-blue-200 hover:bg-blue-700 rounded-md transition-colors duration-200">
                         Meu Perfil
                     </a>

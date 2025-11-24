@@ -64,7 +64,7 @@ def create_app():
     # Adiciona filtro Jinja
     app.jinja_env.filters['format_video_name'] = format_video_name
 
-    # Rota inicial
+    # Rota inicial - redireciona para login
     @app.route('/')
     def index():
         return redirect(url_for('auth.login'))
