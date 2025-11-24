@@ -42,6 +42,22 @@
             background-color: rgba(59, 130, 246, 0.2);
             border-color: #3b82f6;
         }
+
+        /* Proteção contra cópia e seleção */
+        body {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        /* Permitir seleção apenas nos inputs */
+        input, select {
+            -webkit-user-select: auto;
+            -moz-user-select: auto;
+            -ms-user-select: auto;
+            user-select: auto;
+        }
     </style>
 </head>
 <body class="gradient-bg min-h-screen">
@@ -194,6 +210,79 @@
     </div>
 
     <script>
+        // Proteção contra print screen e cópia
+        document.addEventListener('DOMContentLoaded', function() {
+            // Desabilitar clique direito
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                return false;
+            });
+
+            // Desabilitar teclas de atalho
+            document.addEventListener('keydown', function(e) {
+                // Print Screen
+                if (e.key === 'PrintScreen') {
+                    e.preventDefault();
+                    alert('⚠️ Capturas de tela não são permitidas durante a prova!');
+                    return false;
+                }
+
+                // Ctrl+P (Imprimir)
+                if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+                    e.preventDefault();
+                    alert('⚠️ Impressão não é permitida durante a prova!');
+                    return false;
+                }
+
+                // Ctrl+S (Salvar)
+                if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                    e.preventDefault();
+                    alert('⚠️ Salvar página não é permitido durante a prova!');
+                    return false;
+                }
+
+                // Ctrl+C (Copiar)
+                if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+                    e.preventDefault();
+                    alert('⚠️ Cópia de texto não é permitida durante a prova!');
+                    return false;
+                }
+
+                // Ctrl+Shift+I (DevTools)
+                if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'I') {
+                    e.preventDefault();
+                    return false;
+                }
+
+                // F12 (DevTools)
+                if (e.key === 'F12') {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+
+            // Desabilitar cópia
+            document.addEventListener('copy', function(e) {
+                e.preventDefault();
+                return false;
+            });
+
+            // Desabilitar recorte
+            document.addEventListener('cut', function(e) {
+                e.preventDefault();
+                return false;
+            });
+
+            // Detectar quando a janela perde foco (possível tentativa de print)
+            let blurCount = 0;
+            window.addEventListener('blur', function() {
+                blurCount++;
+                if (blurCount > 3) {
+                    console.warn('Múltiplas saídas da janela detectadas');
+                }
+            });
+        });
+
         const topicName = "{{ topic_name }}";
         const questoesData = {{ questoes | tojson }};
         const numTentativas = {{ num_tentativas }};

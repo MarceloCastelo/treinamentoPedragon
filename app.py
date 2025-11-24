@@ -76,10 +76,12 @@ def create_app():
 if __name__ == '__main__':
     app = create_app()
 
-    # Executa servidor com reload, mas sem debug verboso
+    # Executa servidor com reload automático no ambiente de desenvolvimento
+    debug_mode = os.getenv('FLASK_DEBUG', '0') == '1'
     app.run(
-        debug=False,              # evita logs excessivos
-        use_reloader=True,        # mantém reload automático
+        debug=debug_mode,
+        use_reloader=True,
         host='0.0.0.0',
-        port=5000
+        port=5000,
+        extra_files=None
     )
