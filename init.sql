@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS users (
     unidade VARCHAR(100),
     setor VARCHAR(100),
     cargo VARCHAR(100),
+    selected_courses JSON COMMENT 'Cursos selecionados pelo usuário em formato JSON',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_username (username)
