@@ -1,6 +1,6 @@
 -- Criação do banco de dados (caso não exista)
-CREATE DATABASE IF NOT EXISTS treinamento_adtsa CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE treinamento_adtsa;
+-- O Docker Compose já cria o banco definido em MYSQL_DATABASE
+-- Então apenas usamos o banco atual
 
 -- Tabela de usuários (dados adicionais além do LDAP)
 CREATE TABLE IF NOT EXISTS users (

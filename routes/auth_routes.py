@@ -43,10 +43,12 @@ def login():
             
             # IMPORTANTE: Criar/atualizar usuário ANTES de registrar sessão
             # (devido à foreign key constraint)
+            # preserve_existing=True garante que dados do perfil não sejam apagados no login
             create_or_update_user(
                 username=username,
                 email=user_data.get('mail'),
-                department=user_data.get('department')
+                department=user_data.get('department'),
+                preserve_existing=True
             )
             
             # Registrar sessão ativa no banco

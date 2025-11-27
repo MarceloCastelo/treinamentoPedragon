@@ -115,11 +115,32 @@ def get_user(username):
     return execute_query(query, {'username': username}, fetch_one=True)
 
 
-def create_or_update_user(username, email=None, phone=None, department=None, position=None, empresa=None, marca=None, unidade=None, setor=None, cargo=None, selected_courses=None):
-    """Cria ou atualiza um usuário"""
+def create_or_update_user(username, email=None, phone=None, department=None, position=None, empresa=None, marca=None, unidade=None, setor=None, cargo=None, selected_courses=None, preserve_existing=False):
+    """Cria ou atualiza um usuário
+    
+    Args:
+        preserve_existing: Se True, apenas atualiza campos não-None, preservando valores existentes
+    """
     # Converte selected_courses para JSON se for uma lista
     if selected_courses and isinstance(selected_courses, list):
         selected_courses = json.dumps(selected_courses)
+    
+    if preserve_existing:
+        # Busca dados existentes e preserva campos não fornecidos
+        existing_user = get_user(username)
+        if existing_user:
+            email = email if email is not None else existing_user.get('email')
+            phone = phone if phone is not None else existing_user.get('phone')
+            department = department if department is not None else existing_user.get('department')
+            position = position if position is not None else existing_user.get('position')
+            empresa = empresa if empresa is not None else existing_user.get('empresa')
+            marca = marca if marca is not None else existing_user.get('marca')
+            unidade = unidade if unidade is not None else existing_user.get('unidade')
+            setor = setor if setor is not None else existing_user.get('setor')
+            cargo = cargo if cargo is not None else existing_user.get('cargo')
+            # Para selected_courses, preserva apenas se não foi fornecido
+            if selected_courses is None and existing_user.get('selected_courses'):
+                selected_courses = existing_user.get('selected_courses')
     
     query = """
         INSERT INTO users (username, email, phone, department, position, empresa, marca, unidade, setor, cargo, selected_courses)
