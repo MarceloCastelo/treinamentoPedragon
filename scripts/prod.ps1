@@ -1,5 +1,5 @@
 # Script de gerenciamento do ambiente de PRODUÇÃO
-# Uso: .\prod.ps1 [start|stop|restart|logs|status|rebuild|update]
+# Uso: .\scripts\prod.ps1 [start|stop|restart|logs|status|rebuild|update]
 
 param(
     [Parameter(Position=0)]
@@ -8,6 +8,11 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+
+# Muda para o diretório raiz do projeto
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ProjectRoot = Split-Path -Parent $ScriptDir
+Set-Location $ProjectRoot
 
 # Cores para output
 function Write-Success { param($msg) Write-Host $msg -ForegroundColor Green }
@@ -88,7 +93,7 @@ switch ($Action) {
         Write-Success "Aplicação atualizada com sucesso!"
         Write-Info "Aplicação disponível em: http://localhost:5000"
         Write-Info ""
-        Write-Info "Para verificar os logs: .\prod.ps1 logs"
+        Write-Info "Para verificar os logs: .\scripts\prod.ps1 logs"
     }
 }
 

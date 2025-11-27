@@ -1,5 +1,5 @@
 # Script de gerenciamento do ambiente de DESENVOLVIMENTO
-# Uso: .\dev.ps1 [start|stop|restart|logs|status]
+# Uso: .\scripts\dev.ps1 [start|stop|restart|logs|status]
 
 param(
     [Parameter(Position=0)]
@@ -8,6 +8,11 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+
+# Muda para o diretório raiz do projeto
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ProjectRoot = Split-Path -Parent $ScriptDir
+Set-Location $ProjectRoot
 
 # Define variável de ambiente VIDEOS_DIR para o caminho dinâmico do usuário atual
 $env:VIDEOS_DIR = "$env:USERPROFILE\Videos\Treinamento - Dealernet"

@@ -184,7 +184,7 @@ Get-Content "temp\backup_treinamento_adtsa_20241127_230000.sql" -First 10
 docker ps -a --filter "name=treinamento_adtsa_mysql"
 
 # Iniciar container
-.\prod.ps1 start
+.\scripts\prod.ps1 start
 ```
 
 ### Erro de permissao ao restaurar
