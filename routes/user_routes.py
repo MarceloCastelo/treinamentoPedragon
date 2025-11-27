@@ -189,7 +189,8 @@ def update_profile():
         # Obter cursos selecionados (pode vir como lista ou None)
         selected_courses = request.form.getlist('selected_courses')
         
-        # Atualizar dados no banco
+        # Atualizar dados no banco com preserve_existing=True
+        # para não sobrescrever campos que não foram alterados
         result = create_or_update_user(
             username=username,
             email=email if email else None,
@@ -201,7 +202,8 @@ def update_profile():
             unidade=unidade,
             setor=setor,
             cargo=cargo,
-            selected_courses=selected_courses if selected_courses else None
+            selected_courses=selected_courses if selected_courses else None,
+            preserve_existing=True
         )
         
         if result:

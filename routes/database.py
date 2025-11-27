@@ -146,16 +146,16 @@ def create_or_update_user(username, email=None, phone=None, department=None, pos
         INSERT INTO users (username, email, phone, department, position, empresa, marca, unidade, setor, cargo, selected_courses)
         VALUES (:username, :email, :phone, :department, :position, :empresa, :marca, :unidade, :setor, :cargo, :selected_courses)
         ON DUPLICATE KEY UPDATE
-            email = VALUES(email),
-            phone = VALUES(phone),
-            department = VALUES(department),
-            position = VALUES(position),
-            empresa = VALUES(empresa),
-            marca = VALUES(marca),
-            unidade = VALUES(unidade),
-            setor = VALUES(setor),
-            cargo = VALUES(cargo),
-            selected_courses = VALUES(selected_courses),
+            email = :email,
+            phone = :phone,
+            department = :department,
+            position = :position,
+            empresa = :empresa,
+            marca = :marca,
+            unidade = :unidade,
+            setor = :setor,
+            cargo = :cargo,
+            selected_courses = :selected_courses,
             updated_at = CURRENT_TIMESTAMP
     """
     params = {
