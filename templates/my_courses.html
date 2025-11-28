@@ -67,68 +67,90 @@
             </div>
         </div>
 
-        <!-- Lista de Cursos em Progresso -->
+        <!-- Lista de Cursos Selecionados -->
         {% if courses %}
             <div class="section-animate grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for course in courses %}
                     <div class="card-hover bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-xl p-6 border border-white/20 backdrop-blur-sm">
                         <div class="flex items-start justify-between mb-4">
                             <div class="bg-white/20 p-3 rounded-lg">
-                                <ion-icon name="play-circle-outline" class="text-3xl text-white"></ion-icon>
+                                {% if course.status == 'concluído' %}
+                                    <ion-icon name="checkmark-circle" class="text-3xl text-green-400"></ion-icon>
+                                {% elif course.status == 'em andamento' %}
+                                    <ion-icon name="play-circle-outline" class="text-3xl text-yellow-400"></ion-icon>
+                                {% else %}
+                                    <ion-icon name="book-outline" class="text-3xl text-white"></ion-icon>
+                                {% endif %}
                             </div>
                             <span class="bg-blue-500/30 px-3 py-1 rounded-full text-xs text-blue-200 font-semibold">
-                                {{ course.progress_percent|round|int }}%
+                                {{ course.completion_percent|round|int }}%
                             </span>
                         </div>
 
                         <h3 class="text-xl font-bold text-white mb-2">{{ course.formatted_name }}</h3>
-                        <p class="text-blue-300 text-sm mb-4">
-                            <ion-icon name="folder-outline" class="align-middle"></ion-icon>
-                            {{ course.topic }}
-                        </p>
+                        
+                        <!-- Badge de Status -->
+                        <div class="mb-4">
+                            {% if course.status == 'concluído' %}
+                                <span class="inline-flex items-center bg-green-500/30 text-green-200 px-3 py-1 rounded-full text-xs font-semibold">
+                                    <ion-icon name="checkmark-circle" class="mr-1"></ion-icon>
+                                    Concluído
+                                </span>
+                            {% elif course.status == 'em andamento' %}
+                                <span class="inline-flex items-center bg-yellow-500/30 text-yellow-200 px-3 py-1 rounded-full text-xs font-semibold">
+                                    <ion-icon name="time-outline" class="mr-1"></ion-icon>
+                                    Em Andamento
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center bg-gray-500/30 text-gray-200 px-3 py-1 rounded-full text-xs font-semibold">
+                                    <ion-icon name="ellipse-outline" class="mr-1"></ion-icon>
+                                    Não Iniciado
+                                </span>
+                            {% endif %}
+                        </div>
 
                         <!-- Barra de Progresso -->
                         <div class="bg-white/10 rounded-full h-2 mb-4 overflow-hidden">
-                            <div class="progress-bar h-full rounded-full" style="width: {{ course.progress_percent|round|int }}%"></div>
+                            <div class="progress-bar h-full rounded-full" style="width: {{ course.completion_percent|round|int }}%"></div>
                         </div>
 
-                        <!-- Informações de Tempo -->
+                        <!-- Informações de Vídeos -->
                         <div class="text-sm text-blue-200 mb-4">
                             <p>
-                                <ion-icon name="time-outline" class="align-middle"></ion-icon>
-                                {{ (course.current_time / 60)|round(1) }} / {{ (course.duration / 60)|round(1) }} min
+                                <ion-icon name="videocam-outline" class="align-middle"></ion-icon>
+                                {{ course.videos_completed }}/{{ course.total_videos }} vídeos concluídos
                             </p>
-                            {% if course.last_watched %}
+                            {% if course.videos_in_progress > 0 %}
                                 <p class="text-xs text-blue-300 mt-1">
-                                    Última vez: {{ course.last_watched[:10] }}
+                                    {{ course.videos_in_progress }} em andamento
                                 </p>
                             {% endif %}
                         </div>
 
-                        <!-- Botão Continuar -->
+                        <!-- Botão de Ação -->
                         <a href="{{ url_for('video.topic_detail', topic_name=course.topic) }}" 
                            class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg text-center transition-all hover:scale-105">
-                            <ion-icon name="play" class="align-middle mr-2"></ion-icon>
-                            Continuar Assistindo
+                            <ion-icon name="{% if course.status == 'não iniciado' %}play{% else %}arrow-forward{% endif %}" class="align-middle mr-2"></ion-icon>
+                            {% if course.status == 'não iniciado' %}Iniciar Curso{% elif course.status == 'concluído' %}Revisar Curso{% else %}Continuar{% endif %}
                         </a>
                     </div>
                 {% endfor %}
             </div>
         {% else %}
-            <!-- Mensagem quando não há cursos em progresso -->
+            <!-- Mensagem quando não há cursos selecionados -->
             <div class="section-animate text-center py-16">
                 <div class="bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-2xl p-12 border border-white/20 backdrop-blur-sm max-w-2xl mx-auto">
                     <div class="bg-white/20 p-6 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
                         <ion-icon name="book-outline" class="text-6xl text-white"></ion-icon>
                     </div>
-                    <h2 class="text-3xl font-bold text-white mb-4">Nenhum curso em progresso</h2>
+                    <h2 class="text-3xl font-bold text-white mb-4">Nenhum curso selecionado</h2>
                     <p class="text-blue-200 mb-8">
-                        Comece a assistir suas aulas e elas aparecerão aqui para você continuar de onde parou.
+                        Selecione os cursos que deseja fazer no seu perfil e eles aparecerão aqui.
                     </p>
-                    <a href="{{ url_for('video.all_courses') }}" 
+                    <a href="{{ url_for('user.profile') }}" 
                        class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-xl transition-all hover:scale-105">
-                        <ion-icon name="search-outline" class="text-xl mr-2"></ion-icon>
-                        Explorar Cursos
+                        <ion-icon name="person-outline" class="text-xl mr-2"></ion-icon>
+                        Ir para Perfil
                     </a>
                 </div>
             </div>
