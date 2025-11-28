@@ -74,7 +74,17 @@ def exam(topic_name):
     # Verificar tentativas anteriores no banco
     tentativas = get_user_exam_attempts(username, topic_name)
     num_tentativas = len(tentativas)
-    previous_attempt = tentativas[-1] if tentativas else None
+    previous_attempt = None
+    
+    if tentativas:
+        # Formatar tentativa anterior para compatibilidade com template
+        last_attempt = tentativas[-1]
+        previous_attempt = {
+            'nota': last_attempt['score'],
+            'acertos': last_attempt['correct_answers'],
+            'total': last_attempt['total_questions'],
+            'data': last_attempt['exam_date']
+        }
     
     # Limitar a 2 tentativas
     if num_tentativas >= 2:
