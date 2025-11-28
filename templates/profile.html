@@ -123,6 +123,24 @@
             padding-right: 3rem;
         }
 
+        /* Estilos para optgroup e options */
+        select optgroup {
+            background-color: #1e3a8a;
+            color: white;
+            font-weight: bold;
+            padding: 8px 0;
+        }
+
+        select option {
+            background-color: #1e3a8a;
+            color: white;
+            padding: 8px 12px;
+        }
+
+        select option:hover {
+            background-color: #1e40af;
+        }
+
         /* Remove scrollbar do modal para evitar conflito com dropdowns */
         .modal-content {
             max-height: 90vh;
@@ -577,6 +595,7 @@
                             <option value="Regence" class="bg-blue-900" {% if additional_data.empresa == 'Regence' %}selected{% endif %}>Regence</option>
                             <option value="Silcar" class="bg-blue-900" {% if additional_data.empresa == 'Silcar' %}selected{% endif %}>Silcar</option>
                             <option value="Oriental" class="bg-blue-900" {% if additional_data.empresa == 'Oriental' %}selected{% endif %}>Oriental</option>
+                            <option value="ADTSA" class="bg-blue-900" {% if additional_data.empresa == 'ADTSA' %}selected{% endif %}>ADTSA</option>
                         </select>
                     </div>
 
@@ -647,69 +666,153 @@
                             <option value="Papicu" class="bg-blue-900" data-empresa="Silcar" {% if additional_data.unidade == 'Papicu' %}selected{% endif %}>Papicu</option>
                             <!-- Oriental -->
                             <option value="Salvador" class="bg-blue-900" data-empresa="Oriental" {% if additional_data.unidade == 'Salvador' %}selected{% endif %}>Salvador</option>
+                            <!-- ADTSA -->
+                            <option value="Curado" class="bg-blue-900" data-empresa="ADTSA" {% if additional_data.unidade == 'Curado' %}selected{% endif %}>Curado</option>
                         </select>
                     </div>
 
                     <!-- Setor -->
-                    <div>
-                        <label for="modal_setor_departamento" class="block text-sm font-semibold text-blue-200 mb-2">
-                            <ion-icon name="layers" class="align-middle mr-1"></ion-icon>
-                            Setor <span class="text-red-400">*</span>
-                        </label>
-                        <select id="modal_setor_departamento" 
-                                name="setor" 
-                                required
-                                class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
-                            <option value="" class="bg-blue-900">Selecione um setor</option>
-                            <option value="Vendas - Consórcio" class="bg-blue-900" {% if additional_data.setor == 'Vendas - Consórcio' %}selected{% endif %}>Consórcio</option>
-                            <option value="Vendas - Seguros" class="bg-blue-900" {% if additional_data.setor == 'Vendas - Seguros' %}selected{% endif %}>Seguros</option>
-                            <option value="Vendas - Novos" class="bg-blue-900" {% if additional_data.setor == 'Vendas - Novos' %}selected{% endif %}>Veículos Novos</option>
-                            <option value="Vendas - Seminovos" class="bg-blue-900" {% if additional_data.setor == 'Vendas - Seminovos' %}selected{% endif %}>Veículos Seminovos</option>
-                            <option value="TI" class="bg-blue-900" {% if additional_data.setor == 'TI' %}selected{% endif %}>TI</option>
-                            <option value="Oficina" class="bg-blue-900" {% if additional_data.setor == 'Oficina' %}selected{% endif %}>Oficina</option>
-                            <option value="Departamento Pessoal" class="bg-blue-900" {% if additional_data.setor == 'Departamento Pessoal' %}selected{% endif %}>Departamento Pessoal</option>
-                            <option value="Jurídico" class="bg-blue-900" {% if additional_data.setor == 'Jurídico' %}selected{% endif %}>Jurídico</option>
-                            <option value="Recursos Humanos" class="bg-blue-900" {% if additional_data.setor == 'Recursos Humanos' %}selected{% endif %}>Recursos Humanos</option>
-                            <option value="Fiscal" class="bg-blue-900" {% if additional_data.setor == 'Fiscal' %}selected{% endif %}>Fiscal</option>
-                            <option value="Financeiro" class="bg-blue-900" {% if additional_data.setor == 'Financeiro' %}selected{% endif %}>Financeiro </option>
-                            <option value="Diretoria" class="bg-blue-900" {% if additional_data.setor == 'Diretoria' %}selected{% endif %}>Diretoria</option>
-                            <option value="Controladoria" class="bg-blue-900" {% if additional_data.setor == 'Controladoria' %}selected{% endif %}>Controladoria</option>
-                            <option value="Contabilidade" class="bg-blue-900" {% if additional_data.setor == 'Contabilidade' %}selected{% endif %}>Contabilidade</option>
-                            <option value="Auditoria Interna" class="bg-blue-900" {% if additional_data.setor == 'Auditoria Interna' %}selected{% endif %}>Auditoria Interna</option>
-                            <option value="Compras" class="bg-blue-900" {% if additional_data.setor == 'Compras' %}selected{% endif %}>Compras</option>
-                            <option value="Administrativo de Loja" class="bg-blue-900" {% if additional_data.setor == 'Administrativo de Loja' %}selected{% endif %}>Administrativo de Loja</option>
-                        </select>
-                    </div>
+<div>
+    <label for="modal_setor_departamento" class="block text-sm font-semibold text-blue-200 mb-2">
+        <ion-icon name="layers" class="align-middle mr-1"></ion-icon>
+        Setor <span class="text-red-400">*</span>
+    </label>
+
+    <select id="modal_setor_departamento" 
+            name="setor" 
+            required
+            class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+
+        <option value="" class="bg-blue-900">Selecione um setor</option>
+
+        <optgroup label="Vendas">
+            <option value="Vendas - Novos" class="bg-blue-900" {% if additional_data.setor == 'Vendas - Novos' %}selected{% endif %}>Veículos Novos</option>
+            <option value="Vendas - Seminovos" class="bg-blue-900" {% if additional_data.setor == 'Vendas - Seminovos' %}selected{% endif %}>Veículos Seminovos</option>
+            <option value="Vendas - Consórcio" class="bg-blue-900" {% if additional_data.setor == 'Vendas - Consórcio' %}selected{% endif %}>Consórcio</option>
+            <option value="Vendas - Seguros" class="bg-blue-900" {% if additional_data.setor == 'Vendas - Seguros' %}selected{% endif %}>Seguros</option>
+            <option value="CRM" class="bg-blue-900" {% if additional_data.setor == 'CRM' %}selected{% endif %}>CRM / Telemarketing</option>
+        </optgroup>
+
+        <optgroup label="Pós-Venda / Oficina">
+            <option value="Oficina" class="bg-blue-900" {% if additional_data.setor == 'Oficina' %}selected{% endif %}>Oficina</option>
+            <option value="Peças" class="bg-blue-900" {% if additional_data.setor == 'Peças' %}selected{% endif %}>Peças</option>
+            <option value="Garantia" class="bg-blue-900" {% if additional_data.setor == 'Garantia' %}selected{% endif %}>Garantia</option>
+            <option value="Qualidade" class="bg-blue-900" {% if additional_data.setor == 'Qualidade' %}selected{% endif %}>Qualidade</option>
+        </optgroup>
+
+        <optgroup label="Administrativo / Backoffice">
+            <option value="Administrativo de Loja" class="bg-blue-900" {% if additional_data.setor == 'Administrativo de Loja' %}selected{% endif %}>Administrativo de Loja</option>
+            <option value="Financeiro" class="bg-blue-900" {% if additional_data.setor == 'Financeiro' %}selected{% endif %}>Financeiro</option>
+            <option value="Fiscal" class="bg-blue-900" {% if additional_data.setor == 'Fiscal' %}selected{% endif %}>Fiscal</option>
+            <option value="Contabilidade" class="bg-blue-900" {% if additional_data.setor == 'Contabilidade' %}selected{% endif %}>Contabilidade</option>
+            <option value="Controladoria" class="bg-blue-900" {% if additional_data.setor == 'Controladoria' %}selected{% endif %}>Controladoria</option>
+            <option value="Compras" class="bg-blue-900" {% if additional_data.setor == 'Compras' %}selected{% endif %}>Compras</option>
+            <option value="Auditoria Interna" class="bg-blue-900" {% if additional_data.setor == 'Auditoria Interna' %}selected{% endif %}>Auditoria Interna</option>
+        </optgroup>
+
+        <optgroup label="Pessoas">
+            <option value="Recursos Humanos" class="bg-blue-900" {% if additional_data.setor == 'Recursos Humanos' %}selected{% endif %}>Recursos Humanos</option>
+            <option value="Departamento Pessoal" class="bg-blue-900" {% if additional_data.setor == 'Departamento Pessoal' %}selected{% endif %}>Departamento Pessoal</option>
+        </optgroup>
+
+        <optgroup label="TI / Sistemas">
+            <option value="TI" class="bg-blue-900" {% if additional_data.setor == 'TI' %}selected{% endif %}>TI</option>
+            <option value="Redes" class="bg-blue-900" {% if additional_data.setor == 'Redes' %}selected{% endif %}>Redes</option>
+            <option value="Infraestrutura" class="bg-blue-900" {% if additional_data.setor == 'Infraestrutura' %}selected{% endif %}>Infraestrutura</option>
+            <option value="Sistemas" class="bg-blue-900" {% if additional_data.setor == 'Sistemas' %}selected{% endif %}>Sistemas</option>
+        </optgroup>
+
+        <optgroup label="Direção / Gestão">
+            <option value="Diretoria" class="bg-blue-900" {% if additional_data.setor == 'Diretoria' %}selected{% endif %}>Diretoria</option>
+            <option value="Gerência Geral" class="bg-blue-900" {% if additional_data.setor == 'Gerência Geral' %}selected{% endif %}>Gerência Geral</option>
+            <option value="Superintendência" class="bg-blue-900" {% if additional_data.setor == 'Superintendência' %}selected{% endif %}>Superintendência</option>
+        </optgroup>
+
+    </select>
+</div>
+
 
                     <!-- Cargo -->
-                    <div>
-                        <label for="modal_cargo" class="block text-sm font-semibold text-blue-200 mb-2">
-                            <ion-icon name="person-circle" class="align-middle mr-1"></ion-icon>
-                            Cargo <span class="text-red-400">*</span>
-                        </label>
-                        <select id="modal_cargo" 
-                                name="cargo" 
-                                required
-                                class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
-                            <option value="" class="bg-blue-900">Selecione um cargo</option>
-                            <option value="Gerente" class="bg-blue-900" {% if additional_data.cargo == 'Gerente' %}selected{% endif %}>Gerente</option>
-                            <option value="Encarregado de Estoque" class="bg-blue-900" {% if additional_data.cargo == 'Encarregado de Estoque' %}selected{% endif %}>Encarregado de Estoque</option>
-                            <option value="Estagiário" class="bg-blue-900" {% if additional_data.cargo == 'Estagiário' %}selected{% endif %}>Estagiário</option>
-                            <option value="Vendedor" class="bg-blue-900" {% if additional_data.cargo == 'Vendedor' %}selected{% endif %}>Vendedor</option>
-                            <option value="Mecânico" class="bg-blue-900" {% if additional_data.cargo == 'Mecânico' %}selected{% endif %}>Mecânico</option>
-                            <option value="Superintendente" class="bg-blue-900" {% if additional_data.cargo == 'Superintendente' %}selected{% endif %}>Superintendente</option>
-                            <option value="Aprendiz" class="bg-blue-900" {% if additional_data.cargo == 'Aprendiz' %}selected{% endif %}>Aprendiz</option>
-                            <option value="Analista" class="bg-blue-900" {% if additional_data.cargo == 'Analista' %}selected{% endif %}>Analista</option>
-                            <option value="Diretor" class="bg-blue-900" {% if additional_data.cargo == 'Diretor' %}selected{% endif %}>Diretor</option>
-                            <option value="Auxiliar de Arquivo" class="bg-blue-900" {% if additional_data.cargo == 'Auxiliar de Arquivo' %}selected{% endif %}>Auxiliar de Arquivo</option>
-                            <option value="Assistente Administrativo" class="bg-blue-900" {% if additional_data.cargo == 'Assistente Administrativo' %}selected{% endif %}>Assistente Administrativo</option>
-                            <option value="Líder de Manutenção" class="bg-blue-900" {% if additional_data.cargo == 'Líder de Manutenção' %}selected{% endif %}>Líder de Manutenção</option>
-                            <option value="Técnico de Seguros" class="bg-blue-900" {% if additional_data.cargo == 'Técnico de Seguros' %}selected{% endif %}>Técnico de Seguros</option>
-                            <option value="Aux. Serviços Gerais" class="bg-blue-900" {% if additional_data.cargo == 'Aux. Serviços Gerais' %}selected{% endif %}>Aux. Serviços Gerais</option>
-                            <option value="Coordenador ADM" class="bg-blue-900" {% if additional_data.cargo == 'Coordenador ADM' %}selected{% endif %}>Coordenador ADM</option>
-                            <option value="Aux. Administrativo" class="bg-blue-900" {% if additional_data.cargo == 'Aux. Administrativo' %}selected{% endif %}>Aux. Administrativo</option>
-                        </select>
-                    </div>
+<div>
+    <label for="modal_cargo" class="block text-sm font-semibold text-blue-200 mb-2">
+        <ion-icon name="person-circle" class="align-middle mr-1"></ion-icon>
+        Cargo <span class="text-red-400">*</span>
+    </label>
+
+    <select id="modal_cargo" 
+            name="cargo" 
+            required
+            class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+
+        <option value="" class="bg-blue-900">Selecione um cargo</option>
+
+        <optgroup label="Vendas">
+            <option value="Vendedor" class="bg-blue-900" data-setor="Vendas - Novos,Vendas - Seminovos,Vendas - Consórcio,Vendas - Seguros,CRM" {% if additional_data.cargo == 'Vendedor' %}selected{% endif %}>Vendedor</option>
+            <option value="Consultor de Vendas" class="bg-blue-900" data-setor="Vendas - Novos,Vendas - Seminovos,CRM" {% if additional_data.cargo == 'Consultor de Vendas' %}selected{% endif %}>Consultor de Vendas</option>
+            <option value="Consultor de Seminovos" class="bg-blue-900" data-setor="Vendas - Seminovos" {% if additional_data.cargo == 'Consultor de Seminovos' %}selected{% endif %}>Consultor de Seminovos</option>
+            <option value="Consultor de F&I" class="bg-blue-900" data-setor="Vendas - Novos,Vendas - Seminovos,Vendas - Consórcio,Vendas - Seguros" {% if additional_data.cargo == 'Consultor de F&I' %}selected{% endif %}>Consultor de F&I (Financiamento/Seguros)</option>
+            <option value="Avaliador" class="bg-blue-900" data-setor="Vendas - Seminovos" {% if additional_data.cargo == 'Avaliador' %}selected{% endif %}>Avaliador de Veículos</option>
+            <option value="Supervisor de Vendas" class="bg-blue-900" data-setor="Vendas - Novos,Vendas - Seminovos,Vendas - Consórcio,Vendas - Seguros,CRM" {% if additional_data.cargo == 'Supervisor de Vendas' %}selected{% endif %}>Supervisor de Vendas</option>
+            <option value="Gerente de Vendas" class="bg-blue-900" data-setor="Vendas - Novos,Vendas - Seminovos,Vendas - Consórcio,Vendas - Seguros,CRM" {% if additional_data.cargo == 'Gerente de Vendas' %}selected{% endif %}>Gerente de Vendas</option>
+        </optgroup>
+
+        <optgroup label="Pós-Venda / Oficina">
+            <option value="Mecânico" class="bg-blue-900" data-setor="Oficina" {% if additional_data.cargo == 'Mecânico' %}selected{% endif %}>Mecânico</option>
+            <option value="Técnico" class="bg-blue-900" data-setor="Oficina" {% if additional_data.cargo == 'Técnico' %}selected{% endif %}>Técnico Automotivo</option>
+            <option value="Eletricista Automotivo" class="bg-blue-900" data-setor="Oficina" {% if additional_data.cargo == 'Eletricista Automotivo' %}selected{% endif %}>Eletricista Automotivo</option>
+            <option value="Consultor Técnico" class="bg-blue-900" data-setor="Oficina,Garantia,Qualidade" {% if additional_data.cargo == 'Consultor Técnico' %}selected{% endif %}>Consultor Técnico</option>
+            <option value="Chefe de Oficina" class="bg-blue-900" data-setor="Oficina" {% if additional_data.cargo == 'Chefe de Oficina' %}selected{% endif %}>Chefe de Oficina</option>
+            <option value="Pintor Automotivo" class="bg-blue-900" data-setor="Oficina" {% if additional_data.cargo == 'Pintor Automotivo' %}selected{% endif %}>Pintor Automotivo</option>
+            <option value="Funileiro" class="bg-blue-900" data-setor="Oficina" {% if additional_data.cargo == 'Funileiro' %}selected{% endif %}>Funileiro</option>
+            <option value="Lavador" class="bg-blue-900" data-setor="Oficina" {% if additional_data.cargo == 'Lavador' %}selected{% endif %}>Lavador de Veículos</option>
+        </optgroup>
+
+        <optgroup label="Peças / Logística">
+            <option value="Estoquista" class="bg-blue-900" data-setor="Peças" {% if additional_data.cargo == 'Estoquista' %}selected{% endif %}>Estoquista</option>
+            <option value="Encarregado de Estoque" class="bg-blue-900" data-setor="Peças" {% if additional_data.cargo == 'Encarregado de Estoque' %}selected{% endif %}>Encarregado de Estoque</option>
+            <option value="Consultor de Peças" class="bg-blue-900" data-setor="Peças" {% if additional_data.cargo == 'Consultor de Peças' %}selected{% endif %}>Consultor de Peças</option>
+            <option value="Gerente de Peças" class="bg-blue-900" data-setor="Peças" {% if additional_data.cargo == 'Gerente de Peças' %}selected{% endif %}>Gerente de Peças</option>
+        </optgroup>
+
+        <optgroup label="Administrativo / Financeiro">
+            <option value="Auxiliar" class="bg-blue-900" data-setor="Administrativo de Loja,Financeiro,Fiscal,Contabilidade,Controladoria,Compras,Auditoria Interna" {% if additional_data.cargo == 'Auxiliar' %}selected{% endif %}>Auxiliar</option>
+            <option value="Assistente" class="bg-blue-900" data-setor="Administrativo de Loja,Financeiro,Fiscal,Contabilidade,Controladoria,Compras,Auditoria Interna" {% if additional_data.cargo == 'Assistente' %}selected{% endif %}>Assistente</option>
+            <option value="Analista" class="bg-blue-900" data-setor="Administrativo de Loja,Financeiro,Fiscal,Contabilidade,Controladoria,Compras,Auditoria Interna" {% if additional_data.cargo == 'Analista' %}selected{% endif %}>Analista</option>
+            <option value="Analista Financeiro" class="bg-blue-900" data-setor="Financeiro,Controladoria" {% if additional_data.cargo == 'Analista Financeiro' %}selected{% endif %}>Analista Financeiro</option>
+            <option value="Caixa" class="bg-blue-900" data-setor="Administrativo de Loja,Financeiro" {% if additional_data.cargo == 'Caixa' %}selected{% endif %}>Caixa</option>
+            <option value="Assistente Administrativo" class="bg-blue-900" data-setor="Administrativo de Loja" {% if additional_data.cargo == 'Assistente Administrativo' %}selected{% endif %}>Assistente Administrativo</option>
+        </optgroup>
+
+        <optgroup label="Pessoas (RH/DP)">
+            <option value="Analista de RH" class="bg-blue-900" data-setor="Recursos Humanos" {% if additional_data.cargo == 'Analista de RH' %}selected{% endif %}>Analista de RH</option>
+            <option value="Assistente de RH" class="bg-blue-900" data-setor="Recursos Humanos" {% if additional_data.cargo == 'Assistente de RH' %}selected{% endif %}>Assistente de RH</option>
+            <option value="Analista de DP" class="bg-blue-900" data-setor="Departamento Pessoal" {% if additional_data.cargo == 'Analista de DP' %}selected{% endif %}>Analista de Departamento Pessoal</option>
+        </optgroup>
+
+        <optgroup label="TI / Sistemas">
+            <option value="Suporte Técnico" class="bg-blue-900" data-setor="Infraestrutura,Redes" {% if additional_data.cargo == 'Suporte Técnico' %}selected{% endif %}>Suporte Técnico</option>
+            <option value="Analista de TI" class="bg-blue-900" data-setor="Infraestrutura,Sistemas,Redes" {% if additional_data.cargo == 'Analista de TI' %}selected{% endif %}>Analista de TI</option>
+            <option value="Desenvolvedor" class="bg-blue-900" data-setor="Sistemas" {% if additional_data.cargo == 'Desenvolvedor' %}selected{% endif %}>Desenvolvedor</option>
+        </optgroup>
+
+        <optgroup label="Gestão / Diretoria">
+            <option value="Líder" class="bg-blue-900" data-setor="Vendas - Novos,Vendas - Seminovos,Vendas - Consórcio,Vendas - Seguros,CRM,Oficina,Peças,Garantia,Qualidade,Administrativo de Loja,Financeiro,Fiscal,Contabilidade,Controladoria,Compras,Auditoria Interna,Recursos Humanos,Departamento Pessoal,TI,Infraestrutura,Sistemas,Diretoria,Gerência Geral,Superintendência" {% if additional_data.cargo == 'Líder' %}selected{% endif %}>Líder</option>
+            <option value="Supervisor" class="bg-blue-900" data-setor="Vendas - Novos,Vendas - Seminovos,Vendas - Consórcio,Vendas - Seguros,CRM,Oficina,Peças,Garantia,Qualidade,Administrativo de Loja,Financeiro,Fiscal,Contabilidade,Controladoria,Compras,Auditoria Interna,Recursos Humanos,Departamento Pessoal,TI,Infraestrutura,Sistemas,Diretoria,Gerência Geral,Superintendência" {% if additional_data.cargo == 'Supervisor' %}selected{% endif %}>Supervisor</option>
+            <option value="Coordenador" class="bg-blue-900" data-setor="Vendas - Novos,Vendas - Seminovos,Vendas - Consórcio,Vendas - Seguros,CRM,Oficina,Peças,Garantia,Qualidade,Administrativo de Loja,Financeiro,Fiscal,Contabilidade,Controladoria,Compras,Auditoria Interna,Recursos Humanos,Departamento Pessoal,TI,Infraestrutura,Sistemas,Diretoria,Gerência Geral,Superintendência" {% if additional_data.cargo == 'Coordenador' %}selected{% endif %}>Coordenador</option>
+            <option value="Gerente" class="bg-blue-900" data-setor="Vendas - Novos,Vendas - Seminovos,Vendas - Consórcio,Vendas - Seguros,CRM,Oficina,Peças,Garantia,Qualidade,Administrativo de Loja,Financeiro,Fiscal,Contabilidade,Controladoria,Compras,Auditoria Interna,Recursos Humanos,Departamento Pessoal,TI,Infraestrutura,Sistemas,Diretoria,Gerência Geral,Superintendência" {% if additional_data.cargo == 'Gerente' %}selected{% endif %}>Gerente</option>
+            <option value="Superintendente" class="bg-blue-900" data-setor="Diretoria,Gerência Geral,Superintendência" {% if additional_data.cargo == 'Superintendente' %}selected{% endif %}>Superintendente</option>
+            <option value="Diretor" class="bg-blue-900" data-setor="Diretoria,Gerência Geral,Superintendência" {% if additional_data.cargo == 'Diretor' %}selected{% endif %}>Diretor</option>
+        </optgroup>
+
+        <optgroup label="Outros">
+            <option value="Recepção" class="bg-blue-900" data-setor="Administrativo de Loja" {% if additional_data.cargo == 'Recepção' %}selected{% endif %}>Recepção</option>
+            <option value="Aprendiz" class="bg-blue-900" data-setor="Vendas - Novos,Vendas - Seminovos,Vendas - Consórcio,Vendas - Seguros,CRM,Oficina,Peças,Garantia,Qualidade,Administrativo de Loja,Financeiro,Fiscal,Contabilidade,Controladoria,Compras,Auditoria Interna,Recursos Humanos,Departamento Pessoal,TI,Infraestrutura,Sistemas" {% if additional_data.cargo == 'Aprendiz' %}selected{% endif %}>Aprendiz</option>
+            <option value="Estagiário" class="bg-blue-900" data-setor="Vendas - Novos,Vendas - Seminovos,Vendas - Consórcio,Vendas - Seguros,CRM,Oficina,Peças,Garantia,Qualidade,Administrativo de Loja,Financeiro,Fiscal,Contabilidade,Controladoria,Compras,Auditoria Interna,Recursos Humanos,Departamento Pessoal,TI,Infraestrutura,Sistemas" {% if additional_data.cargo == 'Estagiário' %}selected{% endif %}>Estagiário</option>
+        </optgroup>
+
+    </select>
+</div>
+
 
                     <!-- Botões -->
                     <div class="flex gap-3 pt-4">
@@ -820,15 +923,21 @@
     <script src="{{ url_for('static', filename='js/navbar.js') }}"></script>
     <script>
         // Cache dos elementos para melhor performance
-        let empresaSelect, unidadeSelect;
+        let empresaSelect, unidadeSelect, setorSelect, cargoSelect;
         
         // Inicialização mais eficiente
         document.addEventListener('DOMContentLoaded', function() {
             empresaSelect = document.getElementById('modal_empresa');
             unidadeSelect = document.getElementById('modal_unidade');
+            setorSelect = document.getElementById('modal_setor_departamento');
+            cargoSelect = document.getElementById('modal_cargo');
             
             if (empresaSelect) {
                 empresaSelect.addEventListener('change', filterUnidades);
+            }
+            
+            if (setorSelect) {
+                setorSelect.addEventListener('change', filterCargos);
             }
         });
 
@@ -838,8 +947,11 @@
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';
             
-            // Filtra unidades usando requestAnimationFrame para melhor performance
-            requestAnimationFrame(filterUnidades);
+            // Filtra unidades e cargos usando requestAnimationFrame para melhor performance
+            requestAnimationFrame(() => {
+                filterUnidades();
+                filterCargos();
+            });
         }
 
         function closeModal() {
@@ -921,6 +1033,49 @@
                 
                 if (selectedEmpresa !== empresaSelecionada && empresaSelecionada !== '') {
                     unidadeSelect.value = '';
+                }
+            }
+        }
+
+        // Filtrar cargos baseados no setor selecionado - OTIMIZADO
+        function filterCargos() {
+            if (!setorSelect || !cargoSelect) return;
+            
+            const setorSelecionado = setorSelect.value;
+            const optgroups = cargoSelect.querySelectorAll('optgroup');
+            
+            // Primeiro, filtrar as opções e rastrear optgroups visíveis
+            optgroups.forEach(optgroup => {
+                const options = optgroup.querySelectorAll('option');
+                let hasVisibleOptions = false;
+                
+                options.forEach(option => {
+                    const setoresOption = option.getAttribute('data-setor');
+                    
+                    if (setorSelecionado === '' || (setoresOption && setoresOption.split(',').includes(setorSelecionado))) {
+                        option.style.display = 'block';
+                        hasVisibleOptions = true;
+                    } else {
+                        option.style.display = 'none';
+                    }
+                });
+                
+                // Ocultar ou mostrar o optgroup baseado nas opções visíveis
+                if (setorSelecionado === '') {
+                    optgroup.style.display = 'block';
+                } else {
+                    optgroup.style.display = hasVisibleOptions ? 'block' : 'none';
+                }
+            });
+            
+            // Verifica se precisa resetar a seleção
+            const selectedIndex = cargoSelect.selectedIndex;
+            if (selectedIndex > 0) {
+                const selectedOption = cargoSelect.options[selectedIndex];
+                const setoresCargoSelecionado = selectedOption.getAttribute('data-setor');
+                
+                if (setorSelecionado !== '' && setoresCargoSelecionado && !setoresCargoSelecionado.split(',').includes(setorSelecionado)) {
+                    cargoSelect.value = '';
                 }
             }
         }
