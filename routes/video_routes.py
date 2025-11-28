@@ -276,7 +276,7 @@ def all_courses():
     user = get_current_user()
     username = get_current_username()
     
-    # Obter cursos selecionados pelo usuário
+    # Obter cursos já adicionados pelo usuário
     user_db = get_user(username)
     selected_courses = []
     if user_db and user_db.get('selected_courses'):
@@ -286,44 +286,80 @@ def all_courses():
         except:
             selected_courses = []
     
-    # Obter todos os tópicos disponíveis
+    # Obter TODOS os tópicos disponíveis (sem filtro)
     all_topics = get_all_topics()
-    
-    # Filtrar apenas os cursos selecionados pelo usuário
-    topics = {}
-    if selected_courses:
-        for topic_name in selected_courses:
-            if topic_name in all_topics:
-                topics[topic_name] = all_topics[topic_name]
-    else:
-        # Se não houver cursos selecionados, mostrar todos (comportamento padrão)
-        topics = all_topics
     
     print(f"\n{'='*80}")
     print(f"DEBUG ALL-COURSES - Usuário: {username}")
-    print(f"DEBUG ALL-COURSES - Cursos selecionados: {selected_courses}")
-    print(f"DEBUG ALL-COURSES - Tópicos filtrados: {list(topics.keys())}")
+    print(f"DEBUG ALL-COURSES - Total de tópicos disponíveis: {len(all_topics)}")
+    print(f"DEBUG ALL-COURSES - Tópicos: {list(all_topics.keys())}")
+    print(f"DEBUG ALL-COURSES - Cursos já adicionados: {selected_courses}")
     print(f"{'='*80}\n")
     
     # Calcular progresso de conclusão para cada tópico
     topics_with_progress = {}
-    for topic_name, videos in topics.items():
+    for topic_name, videos in all_topics.items():
         completion_percentage = calculate_topic_completion(username, topic_name, len(videos))
         topics_with_progress[topic_name] = {
             'videos': videos,
-            'completion': completion_percentage
+            'completion': completion_percentage,
+            'is_added': topic_name in selected_courses
         }
-        print(f"DEBUG ALL-COURSES - Tópico '{topic_name}': {len(videos)} vídeos, {completion_percentage}% concluído")
-    
-    if not topics:
-        flash('Nenhum curso selecionado. Acesse seu perfil para selecionar os cursos que deseja fazer.', 'info')
+        print(f"DEBUG ALL-COURSES - Tópico '{topic_name}': {len(videos)} vídeos, {completion_percentage}% concluído, adicionado={topic_name in selected_courses}")
     
     print(f"\nDEBUG ALL-COURSES - Estrutura final: {list(topics_with_progress.keys())}")
-    for topic, data in topics_with_progress.items():
-        print(f"  - {topic}: {data['completion']}% ({len(data['videos'])} vídeos)")
+    print(f"DEBUG ALL-COURSES - Total retornado: {len(topics_with_progress)}")
     print(f"{'='*80}\n")
     
-    return render_template('all_courses.html', user=user, topics=topics_with_progress, selected_courses=selected_courses)
+    return render_template('all_courses.html', user=user, topics=topics_with_progress)
+
+
+@video_bp.route('/add-course/<path:topic_name>', methods=['POST'])
+@login_required
+@profile_complete_required
+def add_course(topic_name):
+    """Adiciona um curso aos cursos selecionados do usuário"""
+    from .middleware import get_current_username
+    from .database import get_user, create_or_update_user
+    import json
+    
+    username = get_current_username()
+    
+    if not username:
+        flash('Usuário não autenticado.', 'error')
+        return redirect(url_for('auth.login'))
+    
+    # Verificar se o tópico existe
+    topic_path = os.path.join(VIDEOS_DIR, topic_name)
+    if not os.path.exists(topic_path) or not os.path.isdir(topic_path):
+        flash(f'Curso "{topic_name}" não encontrado.', 'error')
+        return redirect(url_for('video.all_courses'))
+    
+    # Obter cursos já selecionados
+    user_db = get_user(username)
+    selected_courses = []
+    if user_db and user_db.get('selected_courses'):
+        selected_courses_json = user_db.get('selected_courses')
+        try:
+            selected_courses = json.loads(selected_courses_json) if isinstance(selected_courses_json, str) else selected_courses_json
+        except:
+            selected_courses = []
+    
+    # Adicionar curso se não estiver na lista
+    if topic_name not in selected_courses:
+        selected_courses.append(topic_name)
+        create_or_update_user(
+            username=username,
+            selected_courses=selected_courses,
+            preserve_existing=True
+        )
+        flash(f'Curso "{topic_name}" adicionado com sucesso!', 'success')
+        print(f"✓ Curso '{topic_name}' adicionado aos cursos selecionados de {username}")
+    else:
+        flash(f'Curso "{topic_name}" já está nos seus cursos.', 'info')
+    
+    # Redirecionar para a página do curso
+    return redirect(url_for('video.topic_detail', topic_name=topic_name))
 
 
 @video_bp.route('/topic/<path:topic_name>')

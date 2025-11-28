@@ -88,27 +88,7 @@
             </div>
         </section>
 
-        <!-- Informativo sobre Cursos Selecionados -->
-        {% if selected_courses %}
-        <section class="section-animate mb-6">
-            <div class="bg-gradient-to-r from-indigo-600/20 to-purple-600/20 rounded-xl p-4 border border-indigo-400/30">
-                <div class="flex items-start gap-3">
-                    <div class="bg-indigo-500/30 p-2 rounded-lg flex-shrink-0">
-                        <ion-icon name="filter-outline" class="text-2xl text-indigo-200"></ion-icon>
-                    </div>
-                    <div class="flex-1">
-                        <p class="text-white font-semibold mb-1">
-                            📚 Exibindo seus cursos selecionados
-                        </p>
-                        <p class="text-sm text-indigo-200">
-                            Você está visualizando apenas os <strong>{{ selected_courses|length }}</strong> curso(s) que selecionou no seu perfil. 
-                            <a href="{{ url_for('user.profile') }}" class="underline hover:text-white transition-colors">Gerenciar cursos</a>
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </section>
-        {% endif %}
+
 
         <!-- Container de Aulas -->
         <section class="section-animate">
@@ -129,29 +109,45 @@
                 </div>
 
                 {% if topics %}
-                    <!-- Grid de Cards de Tópicos -->
+                    <!-- Lista Vertical de Cursos -->
                     <div class="space-y-3">
                         {% for topic_name, topic_data in topics.items() %}
-                        <a href="{{ url_for('video.topic_detail', topic_name=topic_name) }}" 
-                           class="bg-gradient-to-br from-blue-500/20 to-cyan-500/10 rounded-xl p-4 border border-blue-400/30 card-hover group block">
-                            <div class="flex items-center justify-between gap-4">
-                                <!-- Ícone e Título -->
-                                <div class="flex items-center gap-4 flex-1 min-w-0">
-                                    <div class="bg-blue-500/20 w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <div class="bg-gradient-to-br from-blue-500/20 to-cyan-500/10 rounded-xl p-4 border border-blue-400/30 card-hover">
+                            <div class="flex items-center gap-4">
+                                <!-- Ícone -->
+                                <div class="bg-blue-500/20 p-3 rounded-lg flex-shrink-0">
+                                    {% if topic_data.is_added %}
                                         {% if topic_data.completion == 100 %}
                                         <ion-icon name="checkmark-circle" class="text-3xl text-green-400"></ion-icon>
                                         {% else %}
-                                        <ion-icon name="folder-open" class="text-3xl text-blue-300"></ion-icon>
+                                        <ion-icon name="book" class="text-3xl text-blue-400"></ion-icon>
+                                        {% endif %}
+                                    {% else %}
+                                    <ion-icon name="book-outline" class="text-3xl text-white"></ion-icon>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Informações do Curso -->
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-start justify-between gap-3 mb-2">
+                                        <h3 class="text-lg font-bold text-white truncate">{{ topic_name }}</h3>
+                                        {% if topic_data.is_added %}
+                                        <span class="bg-green-500/30 px-2 py-1 rounded-full text-xs text-green-200 font-semibold flex items-center gap-1 flex-shrink-0">
+                                            <ion-icon name="checkmark-circle" class="text-xs"></ion-icon>
+                                            Adicionado
+                                        </span>
                                         {% endif %}
                                     </div>
                                     
-                                    <div class="flex-1 min-w-0">
-                                        <h4 class="text-lg font-bold text-white group-hover:text-blue-300 transition-colors truncate">
-                                            {{ topic_name }}
-                                        </h4>
+                                    <div class="flex items-center gap-4 text-sm text-blue-200">
+                                        <span class="flex items-center">
+                                            <ion-icon name="play-circle-outline" class="mr-1"></ion-icon>
+                                            {{ topic_data.videos|length }} vídeo{{ 's' if topic_data.videos|length > 1 else '' }}
+                                        </span>
+                                        
                                         {% if topic_data.completion > 0 %}
-                                        <div class="flex items-center gap-2 mt-1">
-                                            <div class="flex-1 bg-white/10 rounded-full h-1.5 max-w-[120px]">
+                                        <div class="flex items-center gap-2 flex-1 max-w-xs">
+                                            <div class="flex-1 bg-white/10 rounded-full h-1.5">
                                                 <div class="bg-gradient-to-r from-green-400 to-emerald-500 h-1.5 rounded-full" 
                                                      style="width: {{ topic_data.completion }}%"></div>
                                             </div>
@@ -161,27 +157,26 @@
                                     </div>
                                 </div>
                                 
-                                <!-- Informações e Ação -->
-                                <div class="flex items-center gap-6 flex-shrink-0">
-                                    <div class="flex items-center text-blue-200 text-sm">
-                                        <ion-icon name="play-circle-outline" class="mr-2"></ion-icon>
-                                        <span>{{ topic_data.videos|length }} vídeo{{ 's' if topic_data.videos|length > 1 else '' }}</span>
-                                    </div>
-                                    
-                                    {% if topic_data.completion == 100 %}
-                                    <div class="flex items-center text-green-300 font-semibold">
-                                        <ion-icon name="checkmark-circle" class="mr-2"></ion-icon>
-                                        <span class="hidden sm:inline">Concluído</span>
-                                    </div>
+                                <!-- Botão de Ação -->
+                                <div class="flex-shrink-0">
+                                    {% if topic_data.is_added %}
+                                        <a href="{{ url_for('video.topic_detail', topic_name=topic_name) }}" 
+                                           class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-all hover:scale-105 flex items-center whitespace-nowrap">
+                                            <ion-icon name="play" class="mr-2"></ion-icon>
+                                            {% if topic_data.completion > 0 and topic_data.completion < 100 %}Continuar{% elif topic_data.completion == 100 %}Revisar{% else %}Iniciar{% endif %}
+                                        </a>
+                                    {% else %}
+                                        <form method="POST" action="{{ url_for('video.add_course', topic_name=topic_name) }}">
+                                            <button type="submit" 
+                                                    class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-2 px-5 rounded-lg transition-all hover:scale-105 flex items-center whitespace-nowrap">
+                                                <ion-icon name="add-circle" class="mr-2"></ion-icon>
+                                                Adicionar
+                                            </button>
+                                        </form>
                                     {% endif %}
-                                    
-                                    <div class="flex items-center text-blue-300 font-semibold group-hover:translate-x-2 transition-transform">
-                                        <span class="hidden sm:inline">Ver aulas</span>
-                                        <ion-icon name="arrow-forward-outline" class="ml-2"></ion-icon>
-                                    </div>
                                 </div>
                             </div>
-                        </a>
+                        </div>
                         {% endfor %}
                     </div>
                 {% else %}
@@ -190,13 +185,8 @@
                         <div class="bg-white/10 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4">
                             <ion-icon name="school-outline" class="text-6xl text-white/50"></ion-icon>
                         </div>
-                        <h4 class="text-2xl font-bold text-white mb-2">Nenhum curso selecionado</h4>
-                        <p class="text-blue-200 mb-6">Você ainda não selecionou cursos de seu interesse.</p>
-                        <a href="{{ url_for('user.profile') }}" 
-                           class="inline-flex items-center bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-3 rounded-lg transition-all font-semibold shadow-lg hover:shadow-xl hover:scale-105">
-                            <ion-icon name="settings-outline" class="mr-2 text-xl"></ion-icon>
-                            Selecionar Cursos no Perfil
-                        </a>
+                        <h4 class="text-2xl font-bold text-white mb-2">Nenhum curso disponível</h4>
+                        <p class="text-blue-200 mb-6">Não há cursos cadastrados no sistema no momento.</p>
                     </div>
                 {% endif %}
             </div>

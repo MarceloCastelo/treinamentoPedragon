@@ -15,43 +15,77 @@ user_bp = Blueprint('user', __name__)
 @user_bp.route('/my-courses')
 @login_required
 def my_courses():
-    """Rota para exibir os cursos em progresso do usuário"""
+    """Rota para exibir os cursos selecionados pelo usuário no perfil"""
+    import json
     username = get_current_username()
     
     if not username:
         return redirect(url_for('auth.login'))
     
+    # Obter cursos selecionados pelo usuário
+    user_db = get_user(username)
+    selected_courses = []
+    if user_db and user_db.get('selected_courses'):
+        selected_courses_json = user_db.get('selected_courses')
+        try:
+            selected_courses = json.loads(selected_courses_json) if isinstance(selected_courses_json, str) else selected_courses_json
+        except:
+            selected_courses = []
+    
     # Carregar progresso do usuário do banco de dados
     user_progress = get_user_progress(username)
     
-    # Organizar cursos em progresso (apenas os que não estão completos)
-    courses_in_progress = []
+    # Organizar cursos selecionados com seus status
+    courses_list = []
     
-    for topic, videos in user_progress.items():
-        for video_name, progress in videos.items():
+    for topic_name in selected_courses:
+        # Verificar se há progresso para este curso
+        topic_progress = user_progress.get(topic_name, {})
+        
+        # Contar vídeos do tópico
+        topic_path = os.path.join(VIDEOS_DIR, topic_name)
+        total_videos = 0
+        if os.path.exists(topic_path) and os.path.isdir(topic_path):
+            videos = [f for f in os.listdir(topic_path) if os.path.splitext(f)[1].lower() in VIDEO_EXTENSIONS]
+            total_videos = len(videos)
+        
+        # Calcular progresso geral do curso
+        videos_completed = 0
+        videos_in_progress = 0
+        
+        for video_name, progress in topic_progress.items():
             current_time = progress.get('current_time', 0)
-            duration = progress.get('duration', 1)
+            duration = progress.get('duration', 0)
             
-            # Só incluir se tiver progresso E não estiver completo (menos de 90%)
-            if current_time > 0 and duration > 0:
+            if duration > 0:
                 progress_percent = (current_time / duration) * 100
-                
-                # Filtrar apenas vídeos em andamento (não completos)
-                if progress_percent < 90:
-                    courses_in_progress.append({
-                        'topic': topic,
-                        'video_name': video_name,
-                        'formatted_name': format_video_name(video_name),
-                        'current_time': current_time,
-                        'duration': duration,
-                        'progress_percent': progress_percent,
-                        'last_watched': progress.get('last_watched', '')
-                    })
+                if progress_percent >= 90:
+                    videos_completed += 1
+                elif current_time > 0:
+                    videos_in_progress += 1
+        
+        # Determinar status do curso
+        if videos_completed == total_videos and total_videos > 0:
+            status = 'concluído'
+        elif videos_completed > 0 or videos_in_progress > 0:
+            status = 'em andamento'
+        else:
+            status = 'não iniciado'
+        
+        # Calcular porcentagem de conclusão
+        completion_percent = (videos_completed / total_videos * 100) if total_videos > 0 else 0
+        
+        courses_list.append({
+            'topic': topic_name,
+            'formatted_name': topic_name,
+            'status': status,
+            'completion_percent': completion_percent,
+            'total_videos': total_videos,
+            'videos_completed': videos_completed,
+            'videos_in_progress': videos_in_progress
+        })
     
-    # Ordenar por data de última visualização (mais recente primeiro)
-    courses_in_progress.sort(key=lambda x: x.get('last_watched', ''), reverse=True)
-    
-    return render_template('my_courses.html', courses=courses_in_progress, user=username)
+    return render_template('my_courses.html', courses=courses_list, user=username)
 
 
 @user_bp.route('/profile')
@@ -161,6 +195,13 @@ def profile():
     # Preparar lista de todos os tópicos disponíveis
     available_topics = list(all_topics.keys())
     available_topics.sort()
+    
+    print(f"\n{'='*80}")
+    print(f"DEBUG PROFILE - Usuário: {username}")
+    print(f"DEBUG PROFILE - Total de tópicos disponíveis: {len(available_topics)}")
+    print(f"DEBUG PROFILE - Tópicos: {available_topics}")
+    print(f"DEBUG PROFILE - Cursos selecionados: {selected_courses}")
+    print(f"{'='*80}\n")
     
     return render_template('profile.html', user=user_data, stats=stats, additional_data=additional_data, 
                          exam_scores=exam_scores, available_topics=available_topics, 
