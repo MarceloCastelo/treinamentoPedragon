@@ -50,7 +50,7 @@ def create_app():
     configure_logging()
 
     # Importa blueprints
-    from routes import auth_bp, video_bp, progress_bp, user_bp, exam_bp, admin_bp
+    from routes import auth_bp, video_bp, progress_bp, user_bp, exam_bp
     from routes.video_routes import format_video_name
     
     # Registra rotas
@@ -59,7 +59,6 @@ def create_app():
     app.register_blueprint(progress_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(exam_bp)
-    app.register_blueprint(admin_bp)
 
     # Adiciona filtro Jinja
     app.jinja_env.filters['format_video_name'] = format_video_name
