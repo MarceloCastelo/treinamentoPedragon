@@ -1,19 +1,19 @@
 version: '3.8'
 
 services:
-  mysql_dev:
+  mysql:
     image: mysql:8.0
-    container_name: treinamento_adtsa_mysql_dev
+    container_name: treinamento_adtsa_mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: dev_root_pass
-      MYSQL_DATABASE: treinamento_adtsa_dev
-      MYSQL_USER: dev_user
-      MYSQL_PASSWORD: dev_pass
+      MYSQL_ROOT_PASSWORD: rootpass123
+      MYSQL_DATABASE: treinamento_adtsa
+      MYSQL_USER: adtsa_user
+      MYSQL_PASSWORD: adtsa_pass123
     ports:
-      - "3309:3306"  # Porta diferente do ambiente de produção
+      - "3308:3306"
     volumes:
-      - mysql_dev_data:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     healthcheck:
@@ -21,47 +21,56 @@ services:
       timeout: 20s
       retries: 10
     networks:
-      - dev-network
+      - app-network
 
-  web_dev:
+  web:
     build: .
-    container_name: treinamento_adtsa_web_dev
+    container_name: treinamento_adtsa_web
     restart: always
-    ports:
-      - "5001:5000"  # Porta diferente do ambiente de produção
+    expose:
+      - "5000"
     environment:
-      # Configurações do banco de dados de desenvolvimento
-      DB_HOST: mysql_dev
+      # Configurações do banco de dados
+      DB_HOST: mysql
       DB_PORT: 3306
-      DB_NAME: treinamento_adtsa_dev
-      DB_USER: dev_user
-      DB_PASSWORD: dev_pass
-      # Configurações LDAP/Active Directory (mesmas do prod)
+      DB_NAME: treinamento_adtsa
+      DB_USER: adtsa_user
+      DB_PASSWORD: adtsa_pass123
+      # Configurações LDAP/Active Directory
       LDAP_SERVER: ldap://s02rec1.adt.com.br:389
       LDAP_DOMAIN: adt.com.br
       LDAP_SEARCH_BASE: DC=adt,DC=com,DC=br
       # Outras configurações
-      SECRET_KEY: chave-secreta-desenvolvimento-2024
-      FLASK_ENV: development
-      FLASK_DEBUG: 1
-      PYTHONUNBUFFERED: 1
+      SECRET_KEY: chave-secreta-producao-docker-2024
+      FLASK_ENV: production
     volumes:
-      # Monta código fonte para hot reload
-      - ./app.py:/app/app.py
-      - ./routes:/app/routes
       - ./static:/app/static
       - ./templates:/app/templates
-      - ${VIDEOS_DIR}:/app/videos
+      - C:/Users/marcelo.castelo/Videos/Treinamento - Dealernet:/app/videos
     depends_on:
-      mysql_dev:
+      mysql:
         condition: service_healthy
     networks:
-      - dev-network
+      - app-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: treinamento_adtsa_nginx
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./static:/app/static:ro
+    depends_on:
+      - web
+    networks:
+      - app-network
 
 volumes:
-  mysql_dev_data:
+  mysql_data:
     driver: local
 
 networks:
-  dev-network:
+  app-network:
     driver: bridge
