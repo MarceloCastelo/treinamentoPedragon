@@ -23,3 +23,13 @@ tests/
 htmlcov/
 .DS_Store
 Thumbs.db
+# Node modules (será instalado no container)
+node_modules/
+package-lock.json
+# MySQL data
+mysql_data/
+# Scripts de desenvolvimento local
+scripts/dev.ps1
+scripts/backup_database.ps1
+scripts/restore_database.ps1
+scripts/setup_backup_schedule.ps1

@@ -26,6 +26,10 @@ venv/
 ENV/
 env/
 
+# Node modules e dependências npm
+node_modules/
+package-lock.json
+
 # Environment Variables
 .env
 
