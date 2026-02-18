@@ -314,6 +314,48 @@ def update_profile():
         return redirect(url_for('user.profile'))
 
 
+@user_bp.route('/profile/remove-course', methods=['POST'])
+@login_required
+def remove_course():
+    """Remove um curso da lista de cursos selecionados do usuário"""
+    import json
+    username = get_current_username()
+    if not username:
+        flash('Usuário não autenticado.', 'error')
+        return redirect(url_for('auth.login'))
+
+    course_to_remove = request.form.get('course', '').strip()
+    redirect_to = request.form.get('redirect_to', 'profile')
+
+    if not course_to_remove:
+        flash('Curso não especificado.', 'error')
+        return redirect(url_for('user.profile'))
+
+    user_db = get_user(username)
+    selected_courses = []
+    if user_db and user_db.get('selected_courses'):
+        try:
+            sc = user_db.get('selected_courses')
+            selected_courses = json.loads(sc) if isinstance(sc, str) else sc
+        except Exception:
+            selected_courses = []
+
+    if course_to_remove in selected_courses:
+        selected_courses.remove(course_to_remove)
+        create_or_update_user(
+            username=username,
+            selected_courses=selected_courses,
+            preserve_existing=True
+        )
+        flash('Curso removido dos seus cursos de interesse.', 'success')
+    else:
+        flash('Curso não encontrado na sua lista.', 'error')
+
+    if redirect_to == 'my_courses':
+        return redirect(url_for('user.my_courses'))
+    return redirect(url_for('user.profile'))
+
+
 @user_bp.route('/profile/upload-avatar', methods=['POST'])
 @login_required
 def upload_avatar():

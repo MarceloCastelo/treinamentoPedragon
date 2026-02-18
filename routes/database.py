@@ -121,8 +121,8 @@ def create_or_update_user(username, email=None, phone=None, department=None, pos
     Args:
         preserve_existing: Se True, apenas atualiza campos não-None, preservando valores existentes
     """
-    # Converte selected_courses para JSON se for uma lista
-    if selected_courses and isinstance(selected_courses, list):
+    # Converte selected_courses para JSON se for uma lista (inclusive lista vazia)
+    if selected_courses is not None and isinstance(selected_courses, list):
         selected_courses = json.dumps(selected_courses)
     
     if preserve_existing:

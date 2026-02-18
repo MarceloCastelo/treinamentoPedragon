@@ -367,9 +367,9 @@
                         {% set course_parts = course.split('/') %}
                         {% set course_category = course_parts[0] if course_parts|length > 1 else '' %}
                         {% set course_name = course_parts[-1] %}
-                        <a href="{{ url_for('video.topic_detail', topic_name=course) }}" 
-                           class="group bg-gradient-to-br from-white/10 to-white/5 rounded-xl p-4 border border-white/20 hover:border-indigo-400/50 transition-all card-hover cursor-pointer block">
-                            <div class="flex items-center gap-3">
+                        <div class="group bg-gradient-to-br from-white/10 to-white/5 rounded-xl border border-white/20 hover:border-indigo-400/50 transition-all flex items-stretch overflow-hidden">
+                            <a href="{{ url_for('video.topic_detail', topic_name=course) }}" 
+                               class="flex-1 p-4 flex items-center gap-3 cursor-pointer">
                                 <div class="bg-gradient-to-br from-indigo-500/40 to-purple-500/40 p-2.5 rounded-lg flex-shrink-0 group-hover:from-indigo-500/60 group-hover:to-purple-500/60 transition-all">
                                     <ion-icon name="book-outline" class="text-xl text-indigo-200 group-hover:text-white transition-colors"></ion-icon>
                                 </div>
@@ -384,8 +384,19 @@
                                     </div>
                                 </div>
                                 <ion-icon name="arrow-forward-circle-outline" class="text-2xl text-indigo-300 group-hover:text-white group-hover:translate-x-1 transition-all flex-shrink-0"></ion-icon>
-                            </div>
-                        </a>
+                            </a>
+                            <!-- Botão Remover -->
+                            <form method="POST" action="{{ url_for('user.remove_course') }}"
+                                  onsubmit="return confirm('Remover o curso \'{{ course_name }}\' dos seus cursos de interesse?')">
+                                <input type="hidden" name="course" value="{{ course }}">
+                                <input type="hidden" name="redirect_to" value="profile">
+                                <button type="submit"
+                                        title="Remover curso"
+                                        class="h-full px-3 bg-red-600/20 hover:bg-red-600/50 text-red-300 hover:text-white transition-all border-l border-white/10 flex items-center">
+                                    <ion-icon name="trash-outline" class="text-lg"></ion-icon>
+                                </button>
+                            </form>
+                        </div>
                         {% endfor %}
                     </div>
                     
