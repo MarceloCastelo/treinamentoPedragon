@@ -184,9 +184,26 @@
             <div class="bg-gradient-to-r from-blue-600/30 to-purple-600/30 rounded-2xl p-6 md:p-8 border border-white/20">
                 <div class="flex flex-col md:flex-row items-center md:items-start gap-6">
                     <!-- Avatar -->
-                    <div class="bg-white/20 p-5 rounded-full flex-shrink-0">
-                        <ion-icon name="person" class="text-5xl md:text-6xl text-white"></ion-icon>
+                    <div class="relative flex-shrink-0 group" style="cursor:pointer;" onclick="document.getElementById('avatarInput').click();" title="Clique para alterar foto">
+                        <div class="w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden border-4 border-white/30 shadow-lg flex items-center justify-center bg-white/20">
+                            {% if profile_picture %}
+                            <img src="{{ url_for('static', filename='images/avatars/' + profile_picture) }}"
+                                 alt="Foto de perfil"
+                                 class="w-full h-full object-cover">
+                            {% else %}
+                            <ion-icon name="person" style="font-size:3.5rem;width:3.5rem;height:3.5rem;display:block;color:white;"></ion-icon>
+                            {% endif %}
+                        </div>
+                        <!-- Overlay de hover -->
+                        <div class="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <ion-icon name="camera-outline" style="font-size:1.6rem;width:1.6rem;height:1.6rem;display:block;color:white;"></ion-icon>
+                        </div>
                     </div>
+                    <!-- Input de upload oculto -->
+                    <form id="avatarForm" method="POST" action="{{ url_for('user.upload_avatar') }}" enctype="multipart/form-data" style="display:none;">
+                        <input id="avatarInput" type="file" name="avatar" accept=".jpg,.jpeg,.png,.gif,.webp"
+                               onchange="document.getElementById('avatarForm').submit();">
+                    </form>
                     
                     <!-- Informações do Usuário -->
                     <div class="flex-grow w-full text-center md:text-left">
@@ -347,6 +364,9 @@
                     
                     <div class="flex-1 overflow-y-auto max-h-[400px] space-y-3 mb-4">
                         {% for course in selected_courses %}
+                        {% set course_parts = course.split('/') %}
+                        {% set course_category = course_parts[0] if course_parts|length > 1 else '' %}
+                        {% set course_name = course_parts[-1] %}
                         <a href="{{ url_for('video.topic_detail', topic_name=course) }}" 
                            class="group bg-gradient-to-br from-white/10 to-white/5 rounded-xl p-4 border border-white/20 hover:border-indigo-400/50 transition-all card-hover cursor-pointer block">
                             <div class="flex items-center gap-3">
@@ -354,8 +374,11 @@
                                     <ion-icon name="book-outline" class="text-xl text-indigo-200 group-hover:text-white transition-colors"></ion-icon>
                                 </div>
                                 <div class="flex-1 min-w-0">
-                                    <h3 class="text-white font-semibold text-sm mb-1 break-words group-hover:text-indigo-200 transition-colors">{{ course }}</h3>
-                                    <div class="flex items-center text-xs text-indigo-300 group-hover:text-indigo-200 transition-colors">
+                                    {% if course_category %}
+                                    <p class="text-xs text-white/70 mb-0.5">{{ course_category }}</p>
+                                    {% endif %}
+                                    <h3 class="text-white font-semibold text-sm break-words group-hover:text-indigo-200 transition-colors">{{ course_name }}</h3>
+                                    <div class="flex items-center text-xs text-indigo-300 group-hover:text-indigo-200 transition-colors mt-0.5">
                                         <ion-icon name="play-circle-outline" class="mr-1"></ion-icon>
                                         Clique para iniciar
                                     </div>
@@ -405,18 +428,27 @@
                         Progresso de Conclusão
                     </h3>
                     <div class="flex-1 flex flex-col items-center justify-center">
+                        {% if selected_courses %}
+                        {% set ring_pct = stats.selected_completion %}
+                        {% set ring_watched = stats.selected_watched %}
+                        {% set ring_total = stats.selected_total %}
+                        {% set ring_label = 'dos seus cursos' %}
+                        {% else %}
+                        {% set ring_pct = stats.completion_percent %}
+                        {% set ring_watched = stats.videos_watched %}
+                        {% set ring_total = stats.total_videos %}
+                        {% set ring_label = 'de todos os vídeos' %}
+                        {% endif %}
                         <div class="relative w-40 h-40 mb-4">
                             <svg class="w-full h-full progress-ring" viewBox="0 0 200 200">
-                                <!-- Background circle -->
                                 <circle cx="100" cy="100" r="80" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="20"/>
-                                <!-- Progress circle -->
                                 <circle cx="100" cy="100" r="80" fill="none" 
                                         stroke="url(#gradient)" 
                                         stroke-width="20" 
                                         stroke-linecap="round"
                                         class="progress-ring-circle"
                                         stroke-dasharray="502.65"
-                                        stroke-dashoffset="{{ 502.65 - (502.65 * stats.completion_percent / 100) }}"/>
+                                        stroke-dashoffset="{{ 502.65 - (502.65 * ring_pct / 100) }}"/>
                                 <defs>
                                     <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
                                         <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
@@ -425,13 +457,14 @@
                                 </defs>
                             </svg>
                             <div class="absolute inset-0 flex items-center justify-center">
-                                <span class="text-5xl font-bold text-white">{{ stats.completion_percent|int }}%</span>
+                                <span class="text-5xl font-bold text-white">{{ ring_pct|int }}%</span>
                             </div>
                         </div>
-                        <p class="text-blue-200 text-center text-sm mb-6">
-                            Você completou <span class="font-bold text-white">{{ stats.videos_watched }}</span> 
-                            de <span class="font-bold text-white">{{ stats.total_videos }}</span> vídeos
+                        <p class="text-blue-200 text-center text-sm mb-2">
+                            Você completou <span class="font-bold text-white">{{ ring_watched }}</span>
+                            de <span class="font-bold text-white">{{ ring_total }}</span> vídeos
                         </p>
+                        <p class="text-xs text-blue-400 text-center mb-4">{{ ring_label }}</p>
                     </div>
 
                     <div class="mt-auto">
@@ -866,19 +899,25 @@
                         </p>
                         
                         <div class="bg-white/5 border border-white/20 rounded-lg p-4 max-h-96 overflow-y-auto">
-                            {% if available_topics %}
-                                <div class="space-y-2">
-                                    {% for topic in available_topics %}
-                                    <label class="flex items-start gap-3 p-3 hover:bg-white/10 rounded-lg cursor-pointer transition-all group">
-                                        <input type="checkbox" 
-                                               name="selected_courses" 
-                                               value="{{ topic }}"
-                                               {% if topic in selected_courses %}checked{% endif %}
-                                               class="w-5 h-5 rounded border-white/30 bg-white/10 text-indigo-600 focus:ring-2 focus:ring-indigo-500 mt-0.5 flex-shrink-0">
-                                        <div class="flex-1">
-                                            <span class="text-white font-medium block group-hover:text-indigo-200 transition-colors">{{ topic }}</span>
+                            {% if available_by_category %}
+                                <div class="space-y-4">
+                                    {% for category, topics in available_by_category.items() %}
+                                    <div>
+                                        <p class="text-xs font-bold text-indigo-300 uppercase tracking-wider mb-2 px-1">{{ category }}</p>
+                                        <div class="space-y-1">
+                                            {% for topic in topics %}
+                                            {% set course_display = topic.split('/')[-1] %}
+                                            <label class="flex items-center gap-3 p-2.5 hover:bg-white/10 rounded-lg cursor-pointer transition-all group">
+                                                <input type="checkbox" 
+                                                       name="selected_courses" 
+                                                       value="{{ topic }}"
+                                                       {% if topic in selected_courses %}checked{% endif %}
+                                                       class="w-5 h-5 rounded border-white/30 bg-white/10 text-indigo-600 focus:ring-2 focus:ring-indigo-500 flex-shrink-0">
+                                                <span class="text-white text-sm font-medium group-hover:text-indigo-200 transition-colors">{{ course_display }}</span>
+                                            </label>
+                                            {% endfor %}
                                         </div>
-                                    </label>
+                                    </div>
                                     {% endfor %}
                                 </div>
                             {% else %}

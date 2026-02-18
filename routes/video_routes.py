@@ -196,37 +196,46 @@ def format_video_name(filename):
 
 
 def get_all_topics():
-    """Retorna todos os tópicos e seus vídeos"""
+    """Retorna todos os tópicos e seus vídeos.
+    
+    Estrutura de diretórios esperada:
+        VIDEOS_DIR/topico/pasta_do_curso/video.mp4
+    
+    Retorna um dicionário cujas chaves são 'topico/pasta_do_curso'.
+    """
     topics = {}
     
     try:
         if os.path.exists(VIDEOS_DIR):
-            # Listar todas as pastas (tópicos) - os.listdir retorna strings Unicode no Python 3
-            topic_names = os.listdir(VIDEOS_DIR)
-            
-            for topic_name in topic_names:
-                topic_path = os.path.join(VIDEOS_DIR, topic_name)
+            # Nível 1: categorias/tópicos gerais
+            for category_name in os.listdir(VIDEOS_DIR):
+                category_path = os.path.join(VIDEOS_DIR, category_name)
                 
-                # Verificar se é um diretório
-                if os.path.isdir(topic_path):
-                    # Listar todos os arquivos de vídeo na pasta
-                    video_files = []
-                    file_names = os.listdir(topic_path)
+                if not os.path.isdir(category_path):
+                    continue
+                
+                # Nível 2: pastas dos cursos dentro de cada categoria
+                for course_name in os.listdir(category_path):
+                    course_path = os.path.join(category_path, course_name)
                     
-                    for file_name in file_names:
-                        file_path = os.path.join(topic_path, file_name)
-                        
-                        # Verificar se é um arquivo e tem extensão de vídeo
+                    if not os.path.isdir(course_path):
+                        continue
+                    
+                    # Nível 3: arquivos de vídeo dentro do curso
+                    video_files = []
+                    for file_name in os.listdir(course_path):
+                        file_path = os.path.join(course_path, file_name)
                         if os.path.isfile(file_path):
                             ext = os.path.splitext(file_name)[1].lower()
                             if ext in VIDEO_EXTENSIONS:
                                 video_files.append(file_name)
                     
-                    # Adicionar à estrutura se houver vídeos
                     if video_files:
-                        topics[topic_name] = sorted(video_files)
+                        # Chave composta: 'topico/pasta_do_curso'
+                        topic_key = f"{category_name}/{course_name}"
+                        topics[topic_key] = sorted(video_files)
         
-        # Ordenar os tópicos alfabeticamente
+        # Ordenar os tópicos alfabeticamente pela chave composta
         topics = dict(sorted(topics.items(), key=lambda x: x[0].lower()))
         
         print(f"Debug - Tópicos encontrados: {list(topics.keys())}")
@@ -244,38 +253,51 @@ def get_all_topics():
 @login_required
 @profile_complete_required
 def home():
-    """Nova página inicial com Hero Section e cards informativos - otimizada"""
+    """Página inicial com Hero Section — vídeos mais assistidos baseados em dados reais"""
+    from .database import get_video_view_counts
+    import os
+
     user = get_current_user()
-    
-    # Buscar apenas os primeiros 6 tópicos para cursos populares
-    # Otimização: não processar todos os tópicos, apenas o necessário
-    all_topics = get_all_topics()
-    
-    # Limitar a 6 cursos para melhor performance
-    popular_courses = []
-    for idx, (topic_name, videos) in enumerate(list(all_topics.items())[:6]):
-        popular_courses.append({
+
+    # Busca vídeos mais assistidos do banco
+    video_rows = get_video_view_counts()
+
+    popular_videos = []
+    for row in video_rows[:6]:
+        topic_name = row['topic']
+        video_name = row['video_name']
+        views = int(row['views'])
+        unique_users = int(row['unique_users'])
+
+        # Nome do curso (parte após a primeira '/')
+        course_display = topic_name.split('/', 1)[1] if '/' in topic_name else topic_name
+        # Nome do vídeo sem extensão
+        video_display = os.path.splitext(video_name)[0]
+
+        popular_videos.append({
             'topic_name': topic_name,
-            'video_count': len(videos),
-            'views': (6 - idx) * 150  # Simulado: views decrescentes
+            'course_display': course_display,
+            'video_name': video_name,
+            'views': views,
+            'unique_users': unique_users,
         })
-    
-    return render_template('home.html', user=user, popular_courses=popular_courses)
+
+    return render_template('home.html', user=user, popular_videos=popular_videos)
 
 
 @video_bp.route('/all-courses')
 @login_required
 @profile_complete_required
 def all_courses():
-    """Página com todos os cursos disponíveis (antiga home)"""
+    """Página com todos os módulos/categorias disponíveis"""
     from .progress_routes import calculate_topic_completion
     from .middleware import get_current_username
     from .database import get_user
     import json
-    
+
     user = get_current_user()
     username = get_current_username()
-    
+
     # Obter cursos já adicionados pelo usuário
     user_db = get_user(username)
     selected_courses = []
@@ -285,33 +307,95 @@ def all_courses():
             selected_courses = json.loads(selected_courses_json) if isinstance(selected_courses_json, str) else selected_courses_json
         except:
             selected_courses = []
-    
-    # Obter TODOS os tópicos disponíveis (sem filtro)
+
+    # Obter TODOS os tópicos disponíveis
     all_topics = get_all_topics()
-    
-    print(f"\n{'='*80}")
-    print(f"DEBUG ALL-COURSES - Usuário: {username}")
-    print(f"DEBUG ALL-COURSES - Total de tópicos disponíveis: {len(all_topics)}")
-    print(f"DEBUG ALL-COURSES - Tópicos: {list(all_topics.keys())}")
-    print(f"DEBUG ALL-COURSES - Cursos já adicionados: {selected_courses}")
-    print(f"{'='*80}\n")
-    
-    # Calcular progresso de conclusão para cada tópico
-    topics_with_progress = {}
-    for topic_name, videos in all_topics.items():
-        completion_percentage = calculate_topic_completion(username, topic_name, len(videos))
-        topics_with_progress[topic_name] = {
-            'videos': videos,
-            'completion': completion_percentage,
-            'is_added': topic_name in selected_courses
-        }
-        print(f"DEBUG ALL-COURSES - Tópico '{topic_name}': {len(videos)} vídeos, {completion_percentage}% concluído, adicionado={topic_name in selected_courses}")
-    
-    print(f"\nDEBUG ALL-COURSES - Estrutura final: {list(topics_with_progress.keys())}")
-    print(f"DEBUG ALL-COURSES - Total retornado: {len(topics_with_progress)}")
-    print(f"{'='*80}\n")
-    
-    return render_template('all_courses.html', user=user, topics=topics_with_progress)
+
+    # Agrupar por categoria (primeiro nível do path)
+    # topic_name = "Categoria/NomeCurso"
+    categories = {}
+    for topic_key, videos in all_topics.items():
+        category_name, course_name = topic_key.split('/', 1)
+        completion = calculate_topic_completion(username, topic_key, len(videos))
+
+        if category_name not in categories:
+            categories[category_name] = {
+                'courses': [],
+                'total_videos': 0,
+                'added_count': 0,
+                'total_completion': 0,
+            }
+
+        categories[category_name]['courses'].append({
+            'topic_key': topic_key,
+            'course_name': course_name,
+            'video_count': len(videos),
+            'completion': completion,
+            'is_added': topic_key in selected_courses,
+        })
+        categories[category_name]['total_videos'] += len(videos)
+        categories[category_name]['total_completion'] += completion
+        if topic_key in selected_courses:
+            categories[category_name]['added_count'] += 1
+
+    # Calcular progresso médio por categoria
+    for cat in categories.values():
+        n = len(cat['courses'])
+        cat['avg_completion'] = round(cat['total_completion'] / n) if n else 0
+
+    categories = dict(sorted(categories.items(), key=lambda x: x[0].lower()))
+
+    return render_template('all_courses.html', user=user, categories=categories)
+
+
+@video_bp.route('/category/<path:category_name>')
+@login_required
+@profile_complete_required
+def category_detail(category_name):
+    """Página de detalhes de uma categoria com seus cursos"""
+    from .progress_routes import calculate_topic_completion
+    from .middleware import get_current_username
+    from .database import get_user
+    import json
+
+    user = get_current_user()
+    username = get_current_username()
+
+    # Verificar se a categoria existe
+    category_path = os.path.join(VIDEOS_DIR, category_name)
+    if not os.path.exists(category_path) or not os.path.isdir(category_path):
+        flash(f'Módulo "{category_name}" não encontrado.', 'error')
+        return redirect(url_for('video.all_courses'))
+
+    # Obter cursos já adicionados pelo usuário
+    user_db = get_user(username)
+    selected_courses = []
+    if user_db and user_db.get('selected_courses'):
+        selected_courses_json = user_db.get('selected_courses')
+        try:
+            selected_courses = json.loads(selected_courses_json) if isinstance(selected_courses_json, str) else selected_courses_json
+        except:
+            selected_courses = []
+
+    # Obter todos os tópicos e filtrar por categoria
+    all_topics = get_all_topics()
+    courses = {}
+    for topic_key, videos in all_topics.items():
+        if topic_key.startswith(category_name + '/'):
+            course_name = topic_key.split('/', 1)[1]
+            completion = calculate_topic_completion(username, topic_key, len(videos))
+            courses[topic_key] = {
+                'course_name': course_name,
+                'videos': videos,
+                'video_count': len(videos),
+                'completion': completion,
+                'is_added': topic_key in selected_courses,
+            }
+
+    courses = dict(sorted(courses.items(), key=lambda x: x[0].lower()))
+
+    return render_template('category_detail.html', user=user,
+                           category_name=category_name, courses=courses)
 
 
 @video_bp.route('/add-course/<path:topic_name>', methods=['POST'])
@@ -436,13 +520,23 @@ def topic_detail(topic_name):
                          exam_exists=exam_exists, completion=completion_percentage)
 
 
-@video_bp.route('/videos/<path:topic>/<path:filename>')
+@video_bp.route('/videos/<path:filepath>')
 @login_required
 @profile_complete_required
-def serve_video(topic, filename):
-    """Serve arquivos de vídeo do diretório local com suporte a streaming e Range requests"""
+def serve_video(filepath):
+    """Serve arquivos de vídeo do diretório local com suporte a streaming e Range requests.
+    
+    O parâmetro 'filepath' é o caminho completo relativo a VIDEOS_DIR, ex:
+        topico/pasta_do_curso/video.mp4
+    """
     from flask import request, Response
     
+    # Separar o nome do arquivo do restante do caminho
+    path_parts = filepath.rsplit('/', 1)
+    if len(path_parts) != 2:
+        return "Caminho inválido", 400
+    topic, filename = path_parts
+
     topic_path = os.path.join(VIDEOS_DIR, topic)
     file_path = os.path.join(topic_path, filename)
     

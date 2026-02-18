@@ -204,7 +204,7 @@
                                            data-video-name="{{ video.name }}"
                                            data-video-index="{{ loop.index }}"
                                            controlsList="nodownload">
-                                        <source src="{{ url_for('video.serve_video', topic=topic_name, filename=video.name) }}" 
+                                        <source src="{{ url_for('video.serve_video', filepath=topic_name + '/' + video.name) }}" 
                                                 type="video/mp4">
                                         Seu navegador não suporta a reprodução de vídeos HTML5.
                                     </video>

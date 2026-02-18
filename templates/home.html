@@ -139,7 +139,7 @@
         </section>
 
         <!-- Seção de Cursos Populares -->
-        {% if popular_courses %}
+        {% if popular_videos %}
         <section class="mb-12">
             <div class="bg-gradient-to-r from-indigo-600/30 to-purple-600/30 rounded-2xl p-8 border border-white/20">
                 <div class="flex items-center mb-8">
@@ -153,23 +153,44 @@
                 </div>
 
                 <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {% for course in popular_courses[:6] %}
-                    <a href="{{ url_for('video.topic_detail', topic_name=course.topic_name) }}" 
-                       class="card-hover bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl p-6 border border-white/20 backdrop-blur-sm group">
-                        <div class="flex items-start mb-4">
-                            <div class="bg-orange-500/20 p-3 rounded-lg">
-                                <ion-icon name="play-circle" class="text-2xl text-orange-300"></ion-icon>
+                    {% for video in popular_videos %}
+                    <a href="{{ url_for('video.topic_detail', topic_name=video.topic_name) }}" 
+                       class="card-hover bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl p-6 border border-white/20 backdrop-blur-sm group flex flex-col gap-3">
+                        <div class="flex items-start justify-between">
+                            <div class="bg-orange-500/20 p-3 rounded-lg" style="flex-shrink:0;">
+                                <ion-icon name="play-circle" style="font-size:1.5rem;width:1.5rem;height:1.5rem;display:block;color:#fdba74;"></ion-icon>
                             </div>
+                            <span class="bg-white/10 px-2 py-1 rounded-full text-xs text-blue-200 font-semibold flex items-center gap-1 whitespace-nowrap" style="flex-shrink:0;">
+                                <ion-icon name="eye-outline" style="font-size:0.85rem;width:0.85rem;height:0.85rem;display:inline-block;vertical-align:-0.1em;"></ion-icon>
+                                {{ video.views }} visualiza{{ 'ções' if video.views != 1 else 'ção' }}
+                            </span>
                         </div>
-                        <h4 class="text-lg font-bold text-white group-hover:text-blue-300 transition-colors mb-2">
-                            {{ course.topic_name }}
-                        </h4>
-                        <p class="text-sm text-blue-300">
-                            <ion-icon name="videocam-outline" class="align-middle mr-1"></ion-icon>
-                            {{ course.video_count }} vídeos
-                        </p>
+                        <div style="flex:1;">
+                            <p class="text-xs text-blue-400 mb-1">{{ video.course_display }}</p>
+                            <h4 class="text-sm font-bold text-white group-hover:text-blue-300 transition-colors leading-snug">
+                                {{ video.video_name | format_video_name }}
+                            </h4>
+                        </div>
+                        <div class="flex items-center justify-between text-xs text-blue-400 mt-auto">
+                            <span class="flex items-center gap-1">
+                                <ion-icon name="folder-outline" style="font-size:0.85rem;width:0.85rem;height:0.85rem;display:inline-block;vertical-align:-0.1em;"></ion-icon>
+                                {{ video.course_display }}
+                            </span>
+                            {% if video.unique_users > 0 %}
+                            <span class="flex items-center gap-1">
+                                <ion-icon name="people-outline" style="font-size:0.85rem;width:0.85rem;height:0.85rem;display:inline-block;vertical-align:-0.1em;"></ion-icon>
+                                {{ video.unique_users }} aluno{{ 's' if video.unique_users != 1 else '' }}
+                            </span>
+                            {% endif %}
+                        </div>
                     </a>
                     {% endfor %}
+                    {% if not popular_videos %}
+                    <div class="col-span-3 text-center text-blue-400 py-8">
+                        <ion-icon name="videocam-outline" style="font-size:2rem;width:2rem;height:2rem;display:block;margin:0 auto 0.5rem;"></ion-icon>
+                        <p>Nenhum vídeo assistido ainda.</p>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </section>

@@ -99,84 +99,70 @@
                             <ion-icon name="library-outline" class="text-3xl text-white"></ion-icon>
                         </div>
                         <div>
-                            <h2 class="text-2xl font-bold text-white">Aulas Disponíveis</h2>
-                            <p class="text-blue-200">Selecione um tópico para começar seu treinamento</p>
+                            <h2 class="text-2xl font-bold text-white">Módulos Disponíveis</h2>
+                            <p class="text-blue-200">Selecione um módulo para ver os cursos disponíveis</p>
                         </div>
                     </div>
                     <div class="bg-blue-500/20 px-4 py-2 rounded-full border border-blue-400/30">
-                        <span class="text-blue-200 font-semibold">{{ topics|length }} tópico{{ 's' if topics|length != 1 else '' }}</span>
+                        <span class="text-blue-200 font-semibold">{{ categories|length }} módulo{{ 's' if categories|length != 1 else '' }}</span>
                     </div>
                 </div>
 
-                {% if topics %}
-                    <!-- Lista Vertical de Cursos -->
-                    <div class="space-y-3">
-                        {% for topic_name, topic_data in topics.items() %}
-                        <div class="bg-gradient-to-br from-blue-500/20 to-cyan-500/10 rounded-xl p-4 border border-blue-400/30 card-hover">
+                {% if categories %}
+                    <!-- Grid de Módulos/Categorias -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {% for category_name, cat_data in categories.items() %}
+                        <a href="{{ url_for('video.category_detail', category_name=category_name) }}"
+                           class="bg-gradient-to-br from-blue-500/20 to-cyan-500/10 rounded-2xl p-6 border border-blue-400/30 card-hover flex flex-col gap-4 cursor-pointer no-underline">
+                            <!-- Ícone de Pasta -->
                             <div class="flex items-center gap-4">
-                                <!-- Ícone -->
-                                <div class="bg-blue-500/20 p-3 rounded-lg flex-shrink-0">
-                                    {% if topic_data.is_added %}
-                                        {% if topic_data.completion == 100 %}
-                                        <ion-icon name="checkmark-circle" class="text-3xl text-green-400"></ion-icon>
-                                        {% else %}
-                                        <ion-icon name="book" class="text-3xl text-blue-400"></ion-icon>
-                                        {% endif %}
+                                <div class="bg-blue-500/30 p-4 rounded-xl flex-shrink-0">
+                                    {% if cat_data.avg_completion == 100 %}
+                                    <ion-icon name="checkmark-circle" class="text-4xl text-green-400"></ion-icon>
+                                    {% elif cat_data.avg_completion > 0 %}
+                                    <ion-icon name="folder-open" class="text-4xl text-yellow-300"></ion-icon>
                                     {% else %}
-                                    <ion-icon name="book-outline" class="text-3xl text-white"></ion-icon>
+                                    <ion-icon name="folder" class="text-4xl text-blue-300"></ion-icon>
                                     {% endif %}
                                 </div>
-                                
-                                <!-- Informações do Curso -->
                                 <div class="flex-1 min-w-0">
-                                    <div class="flex items-start justify-between gap-3 mb-2">
-                                        <h3 class="text-lg font-bold text-white truncate">{{ topic_name }}</h3>
-                                        {% if topic_data.is_added %}
-                                        <span class="bg-green-500/30 px-2 py-1 rounded-full text-xs text-green-200 font-semibold flex items-center gap-1 flex-shrink-0">
-                                            <ion-icon name="checkmark-circle" class="text-xs"></ion-icon>
-                                            Adicionado
-                                        </span>
-                                        {% endif %}
-                                    </div>
-                                    
-                                    <div class="flex items-center gap-4 text-sm text-blue-200">
-                                        <span class="flex items-center">
-                                            <ion-icon name="play-circle-outline" class="mr-1"></ion-icon>
-                                            {{ topic_data.videos|length }} vídeo{{ 's' if topic_data.videos|length > 1 else '' }}
-                                        </span>
-                                        
-                                        {% if topic_data.completion > 0 %}
-                                        <div class="flex items-center gap-2 flex-1 max-w-xs">
-                                            <div class="flex-1 bg-white/10 rounded-full h-1.5">
-                                                <div class="bg-gradient-to-r from-green-400 to-emerald-500 h-1.5 rounded-full" 
-                                                     style="width: {{ topic_data.completion }}%"></div>
-                                            </div>
-                                            <span class="text-xs text-green-300 font-semibold">{{ topic_data.completion }}%</span>
-                                        </div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                
-                                <!-- Botão de Ação -->
-                                <div class="flex-shrink-0">
-                                    {% if topic_data.is_added %}
-                                        <a href="{{ url_for('video.topic_detail', topic_name=topic_name) }}" 
-                                           class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-all hover:scale-105 flex items-center whitespace-nowrap">
-                                            <ion-icon name="play" class="mr-2"></ion-icon>
-                                            {% if topic_data.completion > 0 and topic_data.completion < 100 %}Continuar{% elif topic_data.completion == 100 %}Revisar{% else %}Iniciar{% endif %}
-                                        </a>
-                                    {% else %}
-                                        <form method="POST" action="{{ url_for('video.add_course', topic_name=topic_name) }}">
-                                            <button type="submit" 
-                                                    class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-2 px-5 rounded-lg transition-all hover:scale-105 flex items-center whitespace-nowrap">
-                                                <ion-icon name="add-circle" class="mr-2"></ion-icon>
-                                                Adicionar
-                                            </button>
-                                        </form>
-                                    {% endif %}
+                                    <h3 class="text-xl font-bold text-white truncate">{{ category_name }}</h3>
+                                    <p class="text-blue-200 text-sm mt-1">
+                                        {{ cat_data.courses|length }} curso{{ 's' if cat_data.courses|length != 1 else '' }} &middot;
+                                        {{ cat_data.total_videos }} vídeo{{ 's' if cat_data.total_videos != 1 else '' }}
+                                    </p>
                                 </div>
                             </div>
-                        </div>
+
+                            <!-- Progresso médio -->
+                            {% if cat_data.avg_completion > 0 %}
+                            <div>
+                                <div class="flex justify-between text-xs text-blue-200 mb-1">
+                                    <span>Progresso</span>
+                                    <span class="text-green-300 font-semibold">{{ cat_data.avg_completion }}%</span>
+                                </div>
+                                <div class="w-full bg-white/10 rounded-full h-2">
+                                    <div class="bg-gradient-to-r from-green-400 to-emerald-500 h-2 rounded-full"
+                                         style="width: {{ cat_data.avg_completion }}%"></div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- Rodapé do card -->
+                            <div class="flex items-center justify-between mt-auto">
+                                {% if cat_data.added_count > 0 %}
+                                <span class="text-xs text-green-300 flex items-center gap-1">
+                                    <ion-icon name="checkmark-circle"></ion-icon>
+                                    {{ cat_data.added_count }}/{{ cat_data.courses|length }} adicionado{{ 's' if cat_data.added_count != 1 else '' }}
+                                </span>
+                                {% else %}
+                                <span class="text-xs text-blue-300">Nenhum curso adicionado</span>
+                                {% endif %}
+                                <span class="text-blue-200 flex items-center gap-1 text-sm font-semibold">
+                                    Acessar <ion-icon name="chevron-forward"></ion-icon>
+                                </span>
+                            </div>
+                        </a>
                         {% endfor %}
                     </div>
                 {% else %}

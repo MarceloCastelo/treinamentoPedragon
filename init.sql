@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS users (
     setor VARCHAR(100),
     cargo VARCHAR(100),
     selected_courses JSON COMMENT 'Cursos selecionados pelo usuário em formato JSON',
+    profile_picture VARCHAR(255) NULL DEFAULT NULL COMMENT 'Caminho relativo da foto de perfil',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_username (username)

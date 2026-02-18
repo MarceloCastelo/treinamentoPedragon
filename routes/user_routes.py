@@ -3,10 +3,13 @@ Rotas relacionadas ao usuário (perfil, cursos)
 """
 from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify
 from .middleware import login_required, get_current_user, get_current_username
-from .database import get_user, create_or_update_user, get_user_progress, get_exam_results
+from .database import get_user, create_or_update_user, get_user_progress, get_exam_results, update_profile_picture
 from .video_routes import format_video_name
 from .config import VIDEOS_DIR, VIDEO_EXTENSIONS, WATCHED_THRESHOLD
 import os
+
+AVATAR_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.webp'}
+AVATAR_UPLOAD_DIR = os.path.join(os.path.dirname(__file__), '..', 'static', 'images', 'avatars')
 
 # Criação do blueprint
 user_bp = Blueprint('user', __name__)
@@ -36,56 +39,77 @@ def my_courses():
     user_progress = get_user_progress(username)
     
     # Organizar cursos selecionados com seus status
-    courses_list = []
-    
+    # Agrupar cursos por módulo (categoria = parte antes da '/')
+    modules = {}
+
     for topic_name in selected_courses:
-        # Verificar se há progresso para este curso
+        # Separar categoria e nome do curso
+        if '/' in topic_name:
+            category_name, course_name = topic_name.split('/', 1)
+        else:
+            category_name, course_name = topic_name, topic_name
+
         topic_progress = user_progress.get(topic_name, {})
-        
+
         # Contar vídeos do tópico
         topic_path = os.path.join(VIDEOS_DIR, topic_name)
         total_videos = 0
         if os.path.exists(topic_path) and os.path.isdir(topic_path):
             videos = [f for f in os.listdir(topic_path) if os.path.splitext(f)[1].lower() in VIDEO_EXTENSIONS]
             total_videos = len(videos)
-        
-        # Calcular progresso geral do curso
+
+        # Calcular progresso
         videos_completed = 0
         videos_in_progress = 0
-        
         for video_name, progress in topic_progress.items():
             current_time = progress.get('current_time', 0)
             duration = progress.get('duration', 0)
-            
             if duration > 0:
-                progress_percent = (current_time / duration) * 100
-                if progress_percent >= 90:
+                pct = (current_time / duration) * 100
+                if pct >= 90:
                     videos_completed += 1
                 elif current_time > 0:
                     videos_in_progress += 1
-        
-        # Determinar status do curso
+
         if videos_completed == total_videos and total_videos > 0:
             status = 'concluído'
         elif videos_completed > 0 or videos_in_progress > 0:
             status = 'em andamento'
         else:
             status = 'não iniciado'
-        
-        # Calcular porcentagem de conclusão
+
         completion_percent = (videos_completed / total_videos * 100) if total_videos > 0 else 0
-        
-        courses_list.append({
+
+        course_entry = {
             'topic': topic_name,
-            'formatted_name': topic_name,
+            'course_name': course_name,
             'status': status,
             'completion_percent': completion_percent,
             'total_videos': total_videos,
             'videos_completed': videos_completed,
-            'videos_in_progress': videos_in_progress
-        })
-    
-    return render_template('my_courses.html', courses=courses_list, user=username)
+            'videos_in_progress': videos_in_progress,
+        }
+
+        if category_name not in modules:
+            modules[category_name] = {
+                'category_name': category_name,
+                'courses': [],
+                'total_videos': 0,
+                'videos_completed': 0,
+            }
+
+        modules[category_name]['courses'].append(course_entry)
+        modules[category_name]['total_videos'] += total_videos
+        modules[category_name]['videos_completed'] += videos_completed
+
+    # Calcular progresso geral do módulo
+    for mod in modules.values():
+        tv = mod['total_videos']
+        mod['avg_completion'] = round(mod['videos_completed'] / tv * 100) if tv > 0 else 0
+
+    modules = dict(sorted(modules.items(), key=lambda x: x[0].lower()))
+
+    return render_template('my_courses.html', modules=modules, user=username)
 
 
 @user_bp.route('/profile')
@@ -119,18 +143,24 @@ def profile():
             except:
                 selected_courses = []
     
-    # Contar total de vídeos disponíveis
+    # Contar total de vídeos disponíveis (estrutura: /videos/categoria/curso/video.mp4)
     total_videos = 0
-    all_topics = {}
-    
+    all_topics = {}  # {"categoria/curso": [videos]}
+
     if os.path.exists(VIDEOS_DIR):
-        for topic_name in os.listdir(VIDEOS_DIR):
-            topic_path = os.path.join(VIDEOS_DIR, topic_name)
-            if os.path.isdir(topic_path):
-                videos = [f for f in os.listdir(topic_path) 
+        for category in sorted(os.listdir(VIDEOS_DIR)):
+            category_path = os.path.join(VIDEOS_DIR, category)
+            if not os.path.isdir(category_path):
+                continue
+            for course in sorted(os.listdir(category_path)):
+                course_path = os.path.join(category_path, course)
+                if not os.path.isdir(course_path):
+                    continue
+                videos = [f for f in os.listdir(course_path)
                          if os.path.splitext(f)[1].lower() in VIDEO_EXTENSIONS]
                 if videos:
-                    all_topics[topic_name] = videos
+                    topic_key = f"{category}/{course}"
+                    all_topics[topic_key] = videos
                     total_videos += len(videos)
     
     # Carregar progresso do usuário do banco
@@ -157,11 +187,26 @@ def profile():
     
     videos_pending = total_videos - videos_watched
     completion_percent = (videos_watched / total_videos * 100) if total_videos > 0 else 0
-    
+
     # Converter tempo total em horas e minutos
     total_hours = int(total_watch_time // 3600)
     total_minutes = int((total_watch_time % 3600) // 60)
-    
+
+    # Calcular progresso baseado APENAS nos cursos selecionados
+    selected_total = 0
+    selected_watched = 0
+    for topic_name in selected_courses:
+        topic_videos = all_topics.get(topic_name, [])
+        selected_total += len(topic_videos)
+        topic_progress = user_progress.get(topic_name, {})
+        for video_file in topic_videos:
+            prog = topic_progress.get(video_file, {})
+            ct = prog.get('current_time', 0)
+            dur = prog.get('duration', 0)
+            if dur > 0 and (ct / dur) >= WATCHED_THRESHOLD:
+                selected_watched += 1
+    selected_completion = round(selected_watched / selected_total * 100, 1) if selected_total > 0 else 0
+
     stats = {
         'total_videos': total_videos,
         'videos_watched': videos_watched,
@@ -169,7 +214,10 @@ def profile():
         'videos_pending': videos_pending,
         'completion_percent': round(completion_percent, 1),
         'total_watch_time': f"{total_hours}h {total_minutes}min" if total_hours > 0 else f"{total_minutes}min",
-        'total_topics': len(all_topics)
+        'total_topics': len(all_topics),
+        'selected_total': selected_total,
+        'selected_watched': selected_watched,
+        'selected_completion': selected_completion,
     }
     
     # Carregar notas das provas do banco
@@ -192,9 +240,13 @@ def profile():
     # Ordenar por nome do módulo
     exam_scores.sort(key=lambda x: x['modulo'])
     
-    # Preparar lista de todos os tópicos disponíveis
-    available_topics = list(all_topics.keys())
-    available_topics.sort()
+    # Preparar lista de tópicos agrupados por categoria para o modal
+    available_by_category = {}
+    for topic_key in sorted(all_topics.keys()):
+        cat = topic_key.split('/', 1)[0] if '/' in topic_key else topic_key
+        available_by_category.setdefault(cat, []).append(topic_key)
+
+    available_topics = sorted(all_topics.keys())
     
     print(f"\n{'='*80}")
     print(f"DEBUG PROFILE - Usuário: {username}")
@@ -203,9 +255,11 @@ def profile():
     print(f"DEBUG PROFILE - Cursos selecionados: {selected_courses}")
     print(f"{'='*80}\n")
     
-    return render_template('profile.html', user=user_data, stats=stats, additional_data=additional_data, 
-                         exam_scores=exam_scores, available_topics=available_topics, 
-                         selected_courses=selected_courses)
+    return render_template('profile.html', user=user_data, stats=stats, additional_data=additional_data,
+                         exam_scores=exam_scores, available_topics=available_topics,
+                         available_by_category=available_by_category,
+                         selected_courses=selected_courses,
+                         profile_picture=user_db.get('profile_picture') if user_db else None)
 
 
 @user_bp.route('/profile/update', methods=['POST'])
@@ -258,3 +312,47 @@ def update_profile():
         print(f"Erro ao atualizar perfil: {e}")
         flash('Erro ao atualizar o perfil. Tente novamente.', 'error')
         return redirect(url_for('user.profile'))
+
+
+@user_bp.route('/profile/upload-avatar', methods=['POST'])
+@login_required
+def upload_avatar():
+    """Rota para upload de foto de perfil"""
+    username = get_current_username()
+    if not username:
+        return jsonify({'success': False, 'message': 'Não autenticado'}), 401
+
+    file = request.files.get('avatar')
+    if not file or file.filename == '':
+        flash('Nenhum arquivo selecionado.', 'error')
+        return redirect(url_for('user.profile'))
+
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in AVATAR_EXTENSIONS:
+        flash('Formato inválido. Use JPG, PNG, GIF ou WEBP.', 'error')
+        return redirect(url_for('user.profile'))
+
+    # Limita tamanho a 5MB
+    file.seek(0, 2)
+    size = file.tell()
+    file.seek(0)
+    if size > 5 * 1024 * 1024:
+        flash('A imagem deve ter no máximo 5MB.', 'error')
+        return redirect(url_for('user.profile'))
+
+    os.makedirs(AVATAR_UPLOAD_DIR, exist_ok=True)
+
+    # Remove avatar anterior se existir
+    for old_ext in AVATAR_EXTENSIONS:
+        old_path = os.path.join(AVATAR_UPLOAD_DIR, f"{username}{old_ext}")
+        if os.path.exists(old_path):
+            os.remove(old_path)
+
+    filename = f"{username}{ext}"
+    filepath = os.path.join(AVATAR_UPLOAD_DIR, filename)
+    file.save(filepath)
+
+    update_profile_picture(username, filename)
+
+    flash('Foto de perfil atualizada com sucesso!', 'success')
+    return redirect(url_for('user.profile'))

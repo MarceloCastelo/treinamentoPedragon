@@ -44,6 +44,12 @@
             background: linear-gradient(90deg, #3b82f6 0%, #06b6d4 100%);
             transition: width 0.3s ease;
         }
+        /* ion-icon sizing */
+        .icon-container { display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        .icon-lg   { font-size:2rem;   width:2rem;   height:2rem;   display:block; }
+        .icon-md   { font-size:1.5rem; width:1.5rem; height:1.5rem; display:block; }
+        .icon-sm   { font-size:1.1rem; width:1.1rem; height:1.1rem; display:block; }
+        .icon-inline { font-size:1em; width:1em; height:1em; display:inline-block; vertical-align:-0.15em; }
     </style>
 </head>
 <body class="gradient-bg min-h-screen flex flex-col" data-is-admin="{{ session.get('is_admin', False)|lower }}">
@@ -55,85 +61,125 @@
         <!-- Cabeçalho da Página -->
         <div class="section-animate mb-8">
             <div class="bg-gradient-to-r from-blue-600/30 to-cyan-600/30 rounded-2xl p-8 border border-white/20">
-                <div class="flex items-center mb-4">
-                    <div class="bg-white/20 p-4 rounded-xl mr-4">
-                        <ion-icon name="book-outline" class="text-4xl text-white"></ion-icon>
+                <div class="flex items-center gap-5">
+                    <div class="icon-container bg-white/20 rounded-xl" style="width:64px;height:64px;">
+                        <ion-icon name="book-outline" class="icon-lg" style="color:#fff;"></ion-icon>
                     </div>
-                    <div>
-                        <h1 class="text-4xl font-bold text-white mb-2">Meus Cursos</h1>
+                    <div style="padding-left:8px;">
+                        <h1 class="text-4xl font-bold text-white mb-1">Meus Cursos</h1>
                         <p class="text-blue-200">Continue de onde parou</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Lista de Cursos Selecionados -->
-        {% if courses %}
-            <div class="section-animate grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {% for course in courses %}
-                    <div class="card-hover bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-xl p-6 border border-white/20 backdrop-blur-sm">
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="bg-white/20 p-3 rounded-lg">
-                                {% if course.status == 'concluído' %}
-                                    <ion-icon name="checkmark-circle" class="text-3xl text-green-400"></ion-icon>
-                                {% elif course.status == 'em andamento' %}
-                                    <ion-icon name="play-circle-outline" class="text-3xl text-yellow-400"></ion-icon>
+        <!-- Módulos Agrupados -->
+        {% if modules %}
+            <div class="section-animate">
+                {% for category_name, mod in modules.items() %}
+                <div class="bg-gradient-to-r from-indigo-600/30 to-purple-600/30 rounded-2xl border border-white/20 overflow-hidden" style="margin-bottom: 2.5rem;">
+
+                    <!-- Cabeçalho do Módulo -->
+                    <div class="flex items-center justify-between p-6 border-b border-white/10">
+                        <div class="flex items-center" style="gap:20px;">
+                            <div class="icon-container bg-white/20 rounded-xl" style="width:52px;height:52px;flex-shrink:0;">
+                                {% if mod.avg_completion == 100 %}
+                                <ion-icon name="checkmark-circle" class="icon-md" style="color:#4ade80;"></ion-icon>
+                                {% elif mod.avg_completion > 0 %}
+                                <ion-icon name="folder-open" class="icon-md" style="color:#fde047;"></ion-icon>
                                 {% else %}
-                                    <ion-icon name="book-outline" class="text-3xl text-white"></ion-icon>
+                                <ion-icon name="folder" class="icon-md" style="color:#93c5fd;"></ion-icon>
                                 {% endif %}
                             </div>
-                            <span class="bg-blue-500/30 px-3 py-1 rounded-full text-xs text-blue-200 font-semibold">
-                                {{ course.completion_percent|round|int }}%
-                            </span>
+                            <div style="padding-left:4px;">
+                                <h2 class="text-2xl font-bold text-white">{{ category_name }}</h2>
+                                <p class="text-blue-200 text-sm mt-0.5">
+                                    {{ mod.courses|length }} curso{{ 's' if mod.courses|length != 1 else '' }} &middot;
+                                    {{ mod.total_videos }} vídeo{{ 's' if mod.total_videos != 1 else '' }}
+                                </p>
+                            </div>
                         </div>
+                        {% if mod.avg_completion > 0 %}
+                        <div class="flex items-center gap-3 flex-shrink-0">
+                            <div class="bg-white/10 rounded-full overflow-hidden" style="width:100px;height:8px;">
+                                <div class="h-full rounded-full bg-gradient-to-r from-green-400 to-emerald-500" style="width:{{ mod.avg_completion }}%;"></div>
+                            </div>
+                            <span class="text-green-300 font-semibold text-sm whitespace-nowrap">{{ mod.avg_completion }}%</span>
+                        </div>
+                        {% endif %}
+                    </div>
 
-                        <h3 class="text-xl font-bold text-white mb-2">{{ course.formatted_name }}</h3>
-                        
-                        <!-- Badge de Status -->
-                        <div class="mb-4">
-                            {% if course.status == 'concluído' %}
-                                <span class="inline-flex items-center bg-green-500/30 text-green-200 px-3 py-1 rounded-full text-xs font-semibold">
-                                    <ion-icon name="checkmark-circle" class="mr-1"></ion-icon>
+                    <!-- Cursos do módulo -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+                        {% for course in mod.courses %}
+                        <div class="card-hover bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-xl p-5 border border-white/10 flex flex-col gap-3">
+
+                            <!-- Topo: ícone + percentual -->
+                            <div class="flex items-start justify-between">
+                                <div class="icon-container bg-white/20 rounded-lg" style="width:44px;height:44px;">
+                                    {% if course.status == 'concluído' %}
+                                    <ion-icon name="checkmark-circle" class="icon-md" style="color:#4ade80;"></ion-icon>
+                                    {% elif course.status == 'em andamento' %}
+                                    <ion-icon name="play-circle-outline" class="icon-md" style="color:#fbbf24;"></ion-icon>
+                                    {% else %}
+                                    <ion-icon name="book-outline" class="icon-md" style="color:#fff;"></ion-icon>
+                                    {% endif %}
+                                </div>
+                                <span class="bg-blue-500/30 px-3 py-1 rounded-full text-xs text-blue-200 font-semibold">
+                                    {{ course.completion_percent|round|int }}%
+                                </span>
+                            </div>
+
+                            <!-- Nome do curso -->
+                            <h3 class="text-base font-bold text-white leading-snug">{{ course.course_name }}</h3>
+
+                            <!-- Badge de status -->
+                            <div>
+                                {% if course.status == 'concluído' %}
+                                <span class="inline-flex items-center gap-1 bg-green-500/30 text-green-200 px-3 py-1 rounded-full text-xs font-semibold">
+                                    <ion-icon name="checkmark-circle" class="icon-inline" style="color:#86efac;"></ion-icon>
                                     Concluído
                                 </span>
-                            {% elif course.status == 'em andamento' %}
-                                <span class="inline-flex items-center bg-yellow-500/30 text-yellow-200 px-3 py-1 rounded-full text-xs font-semibold">
-                                    <ion-icon name="time-outline" class="mr-1"></ion-icon>
+                                {% elif course.status == 'em andamento' %}
+                                <span class="inline-flex items-center gap-1 bg-yellow-500/30 text-yellow-200 px-3 py-1 rounded-full text-xs font-semibold">
+                                    <ion-icon name="time-outline" class="icon-inline" style="color:#fde68a;"></ion-icon>
                                     Em Andamento
                                 </span>
-                            {% else %}
-                                <span class="inline-flex items-center bg-gray-500/30 text-gray-200 px-3 py-1 rounded-full text-xs font-semibold">
-                                    <ion-icon name="ellipse-outline" class="mr-1"></ion-icon>
+                                {% else %}
+                                <span class="inline-flex items-center gap-1 bg-gray-500/30 text-gray-200 px-3 py-1 rounded-full text-xs font-semibold">
+                                    <ion-icon name="ellipse-outline" class="icon-inline" style="color:#d1d5db;"></ion-icon>
                                     Não Iniciado
                                 </span>
-                            {% endif %}
-                        </div>
+                                {% endif %}
+                            </div>
 
-                        <!-- Barra de Progresso -->
-                        <div class="bg-white/10 rounded-full h-2 mb-4 overflow-hidden">
-                            <div class="progress-bar h-full rounded-full" style="width: {{ course.completion_percent|round|int }}%"></div>
-                        </div>
+                            <!-- Barra de progresso -->
+                            <div class="bg-white/10 rounded-full overflow-hidden" style="height:6px;">
+                                <div class="progress-bar h-full rounded-full" style="width:{{ course.completion_percent|round|int }}%;"></div>
+                            </div>
 
-                        <!-- Informações de Vídeos -->
-                        <div class="text-sm text-blue-200 mb-4">
-                            <p>
-                                <ion-icon name="videocam-outline" class="align-middle"></ion-icon>
+                            <!-- Vídeos -->
+                            <p class="text-sm text-blue-200 flex items-center gap-1">
+                                <ion-icon name="videocam-outline" class="icon-inline" style="color:#93c5fd;"></ion-icon>
                                 {{ course.videos_completed }}/{{ course.total_videos }} vídeos concluídos
+                                {% if course.videos_in_progress > 0 %}
+                                &middot; <span class="text-yellow-300">{{ course.videos_in_progress }} em andamento</span>
+                                {% endif %}
                             </p>
-                            {% if course.videos_in_progress > 0 %}
-                                <p class="text-xs text-blue-300 mt-1">
-                                    {{ course.videos_in_progress }} em andamento
-                                </p>
-                            {% endif %}
-                        </div>
 
-                        <!-- Botão de Ação -->
-                        <a href="{{ url_for('video.topic_detail', topic_name=course.topic) }}" 
-                           class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg text-center transition-all hover:scale-105">
-                            <ion-icon name="{% if course.status == 'não iniciado' %}play{% else %}arrow-forward{% endif %}" class="align-middle mr-2"></ion-icon>
-                            {% if course.status == 'não iniciado' %}Iniciar Curso{% elif course.status == 'concluído' %}Revisar Curso{% else %}Continuar{% endif %}
-                        </a>
+                            <!-- Botão -->
+                            <a href="{{ url_for('video.topic_detail', topic_name=course.topic) }}"
+                               class="mt-auto inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-lg text-sm transition-all hover:scale-105 text-center">
+                                <ion-icon name="{{ 'play' if course.status == 'não iniciado' else 'arrow-forward' }}" class="icon-sm" style="color:#fff;"></ion-icon>
+                                {% if course.status == 'não iniciado' %}Iniciar
+                                {% elif course.status == 'concluído' %}Revisar
+                                {% else %}Continuar{% endif %}
+                            </a>
+                        </div>
+                        {% endfor %}
                     </div>
+
+                </div>
                 {% endfor %}
             </div>
         {% else %}

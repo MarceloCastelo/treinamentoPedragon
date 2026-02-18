@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📂 {{ category_name }} - Plataforma de Aulas ADTSA</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #032B56 0%, #1e40af 50%, #1e3a8a 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+        }
+        .section-animate {
+            animation: fadeInUp 0.5s ease-out;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        /* ion-icon: Tailwind não penetra no Shadow DOM, forçar via CSS */
+        .icon-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .icon-lg   { font-size: 2rem;    width: 2rem;    height: 2rem;    display: block; }
+        .icon-md   { font-size: 1.5rem;  width: 1.5rem;  height: 1.5rem;  display: block; }
+        .icon-sm   { font-size: 1.1rem;  width: 1.1rem;  height: 1.1rem;  display: block; }
+        .icon-inline {
+            font-size: 1em;
+            width: 1em;
+            height: 1em;
+            display: inline-block;
+            vertical-align: -0.15em;
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen flex flex-col" data-is-admin="{{ session.get('is_admin', False)|lower }}">
+    <!-- Navbar -->
+    <div id="navbar-container"></div>
+
+    <main class="flex-grow container mx-auto px-4 py-8 mt-16">
+
+        <!-- Mensagens Flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="section-animate mb-6 rounded-xl p-4 border backdrop-blur-sm
+                        {% if category == 'error' or category == 'danger' %}bg-red-500/20 border-red-400/30 text-red-200
+                        {% elif category == 'success' %}bg-green-500/20 border-green-400/30 text-green-200
+                        {% else %}bg-blue-500/20 border-blue-400/30 text-blue-200{% endif %}">
+                        <div class="flex items-center">
+                            <ion-icon name="{% if category == 'error' or category == 'danger' %}alert-circle-outline{% elif category == 'success' %}checkmark-circle-outline{% else %}information-circle-outline{% endif %}" class="text-2xl mr-3"></ion-icon>
+                            <span class="font-medium">{{ message }}</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Header do módulo -->
+        <section class="section-animate mb-8">
+            <div class="bg-gradient-to-r from-blue-600/30 to-cyan-600/30 rounded-2xl p-8 border border-white/20">
+
+                <a href="{{ url_for('video.all_courses') }}"
+                   class="inline-flex items-center gap-1 text-blue-300 hover:text-white text-sm mb-6 transition-colors">
+                    <ion-icon name="chevron-back" class="icon-sm" style="color:currentColor;"></ion-icon>
+                    Voltar para Módulos
+                </a>
+
+                <div class="flex items-center" style="gap:24px;">
+                    <div class="icon-container bg-white/20 rounded-xl" style="width:64px;height:64px;flex-shrink:0;">
+                        <ion-icon name="folder-open" class="icon-lg" style="color:#fde047;"></ion-icon>
+                    </div>
+                    <div style="padding-left:8px;">
+                        <h1 class="text-3xl font-bold text-white">{{ category_name }}</h1>
+                        <p class="text-blue-200 mt-1 text-sm">
+                            {{ courses|length }} curso{{ 's' if courses|length != 1 else '' }}
+                            disponíve{{ 'is' if courses|length != 1 else 'l' }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Lista de cursos do módulo -->
+        <section class="section-animate">
+            <div class="bg-gradient-to-r from-indigo-600/30 to-purple-600/30 rounded-2xl p-8 border border-white/20">
+
+                <!-- Cabeçalho da seção -->
+                <div class="flex items-center justify-between mb-8">
+                    <div class="flex items-center" style="gap:20px;">
+                        <div class="icon-container bg-white/20 rounded-xl" style="width:56px;height:56px;flex-shrink:0;">
+                            <ion-icon name="library-outline" class="icon-md" style="color:#fff;"></ion-icon>
+                        </div>
+                        <div style="padding-left:8px;">
+                            <h2 class="text-2xl font-bold text-white">Cursos do Módulo</h2>
+                            <p class="text-blue-200 text-sm">Adicione um curso para começar seu treinamento</p>
+                        </div>
+                    </div>
+                    <div class="bg-blue-500/20 px-4 py-2 rounded-full border border-blue-400/30 whitespace-nowrap">
+                        <span class="text-blue-200 font-semibold text-sm">
+                            {{ courses|length }} curso{{ 's' if courses|length != 1 else '' }}
+                        </span>
+                    </div>
+                </div>
+
+                {% if courses %}
+                <div class="space-y-3">
+                    {% for topic_key, course in courses.items() %}
+                    <div class="bg-gradient-to-br from-blue-500/20 to-cyan-500/10 rounded-xl border border-blue-400/30 card-hover">
+                        <div class="flex items-center gap-4 p-4">
+
+                            <!-- Ícone do curso -->
+                            <div class="icon-container bg-blue-500/20 rounded-lg" style="width:48px;height:48px;flex-shrink:0;">
+                                {% if course.is_added %}
+                                    {% if course.completion == 100 %}
+                                    <ion-icon name="checkmark-circle" class="icon-md" style="color:#4ade80;"></ion-icon>
+                                    {% else %}
+                                    <ion-icon name="book" class="icon-md" style="color:#60a5fa;"></ion-icon>
+                                    {% endif %}
+                                {% else %}
+                                <ion-icon name="book-outline" class="icon-md" style="color:#fff;"></ion-icon>
+                                {% endif %}
+                            </div>
+
+                            <!-- Nome e metadados -->
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                    <h3 class="text-base font-bold text-white truncate">{{ course.course_name }}</h3>
+                                    {% if course.is_added %}
+                                    <span class="inline-flex items-center gap-1 bg-green-500/30 px-2 py-0.5 rounded-full text-xs text-green-200 font-semibold whitespace-nowrap" style="flex-shrink:0;">
+                                        <ion-icon name="checkmark-circle" class="icon-inline" style="color:#86efac;"></ion-icon>
+                                        Adicionado
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                <div class="flex items-center gap-3 text-sm text-blue-200 flex-wrap">
+                                    <span class="inline-flex items-center gap-1">
+                                        <ion-icon name="play-circle-outline" class="icon-inline" style="color:#93c5fd;"></ion-icon>
+                                        {{ course.video_count }} vídeo{{ 's' if course.video_count != 1 else '' }}
+                                    </span>
+                                    {% if course.completion > 0 %}
+                                    <div class="flex items-center gap-2" style="min-width:100px;max-width:180px;flex:1;">
+                                        <div class="flex-1 bg-white/10 rounded-full" style="height:6px;">
+                                            <div class="bg-gradient-to-r from-green-400 to-emerald-500 rounded-full" style="height:6px;width:{{ course.completion }}%;"></div>
+                                        </div>
+                                        <span class="text-xs text-green-300 font-semibold whitespace-nowrap">{{ course.completion }}%</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Botão de ação -->
+                            <div style="flex-shrink:0;">
+                                {% if course.is_added %}
+                                    <a href="{{ url_for('video.topic_detail', topic_name=topic_key) }}"
+                                       class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-5 rounded-lg transition-all hover:scale-105 whitespace-nowrap text-sm">
+                                        <ion-icon name="play" class="icon-sm" style="color:#fff;"></ion-icon>
+                                        {% if course.completion > 0 and course.completion < 100 %}Continuar
+                                        {% elif course.completion == 100 %}Revisar
+                                        {% else %}Iniciar{% endif %}
+                                    </a>
+                                {% else %}
+                                    <form method="POST" action="{{ url_for('video.add_course', topic_name=topic_key) }}">
+                                        <button type="submit"
+                                                class="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-2 px-5 rounded-lg transition-all hover:scale-105 whitespace-nowrap text-sm">
+                                            <ion-icon name="add-circle" class="icon-sm" style="color:#fff;"></ion-icon>
+                                            Adicionar
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% else %}
+                <div class="text-center py-16">
+                    <div class="icon-container bg-white/10 rounded-full mx-auto mb-4" style="width:96px;height:96px;">
+                        <ion-icon name="school-outline" class="icon-lg" style="color:rgba(255,255,255,0.4);font-size:3rem;width:3rem;height:3rem;"></ion-icon>
+                    </div>
+                    <h4 class="text-2xl font-bold text-white mb-2">Nenhum curso encontrado</h4>
+                    <p class="text-blue-200">Este módulo não possui cursos cadastrados.</p>
+                </div>
+                {% endif %}
+
+            </div>
+        </section>
+    </main>
+
+    <footer class="mt-12 bg-blue-900/50 border-t border-blue-700/50">
+        <div class="container mx-auto px-4 py-6">
+            <div class="text-center text-blue-300 text-sm">
+                <p>© 2025 GRUPO ADTSA - Divisão de Concessionárias. Todos os direitos reservados.</p>
+                <p class="mt-2">Plataforma de Treinamento Corporativo</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/navbar.js') }}"></script>
+</body>
+</html>

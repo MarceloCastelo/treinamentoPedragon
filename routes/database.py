@@ -180,6 +180,15 @@ def get_all_users():
     return execute_query(query)
 
 
+def update_profile_picture(username, filename):
+    """Atualiza o campo profile_picture do usuário"""
+    query = """
+        UPDATE users SET profile_picture = :filename, updated_at = CURRENT_TIMESTAMP
+        WHERE username = :username
+    """
+    return execute_query(query, {'username': username, 'filename': filename}, fetch_all=False)
+
+
 # ============= FUNÇÕES PARA PROGRESSO DE VÍDEOS =============
 
 def get_user_progress(username, topic=None):
@@ -247,6 +256,49 @@ def save_video_progress(username, topic, video_name, current_time, duration):
         'duration': duration
     }
     return execute_query(query, params, fetch_all=False)
+
+
+def get_topic_view_counts():
+    """
+    Retorna a contagem de visualizações por tópico.
+    Define 'visualização' como: o usuário assistiu >= 10% do vídeo.
+    Retorna lista de dicts ordenada por views desc: [{topic, views, unique_users}]
+    """
+    query = """
+        SELECT
+            topic,
+            COUNT(*) AS views,
+            COUNT(DISTINCT username) AS unique_users
+        FROM video_progress
+        WHERE duration_seconds > 0
+          AND (current_time_seconds / duration_seconds) >= 0.10
+        GROUP BY topic
+        ORDER BY views DESC
+    """
+    results = execute_query(query)
+    return results if results else []
+
+
+def get_video_view_counts():
+    """
+    Retorna a contagem de visualizações por vídeo individual.
+    Define 'visualização' como: o usuário assistiu >= 10% do vídeo.
+    Retorna lista de dicts ordenada por views desc: [{topic, video_name, views, unique_users}]
+    """
+    query = """
+        SELECT
+            topic,
+            video_name,
+            COUNT(*) AS views,
+            COUNT(DISTINCT username) AS unique_users
+        FROM video_progress
+        WHERE duration_seconds > 0
+          AND (current_time_seconds / duration_seconds) >= 0.10
+        GROUP BY topic, video_name
+        ORDER BY views DESC
+    """
+    results = execute_query(query)
+    return results if results else []
 
 
 def get_all_progress():
