@@ -277,16 +277,40 @@ def download_certificate(topic_name):
     cargo = user_db.get('cargo', '')
 
     # Data de conclusão
-    data_conclusao = melhor_tentativa.get('exam_date', datetime.now().strftime('%d/%m/%Y'))
-    if hasattr(data_conclusao, 'strftime'):
-        data_conclusao = data_conclusao.strftime('%d/%m/%Y')
-    else:
-        # Tentar converter string ISO para data formatada
+    MESES_PT = [
+        '', 'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+        'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'
+    ]
+
+    def _formatar_data_pt(valor):
         try:
-            dt = datetime.fromisoformat(str(data_conclusao).replace('Z', ''))
-            data_conclusao = dt.strftime('%d de %B de %Y')
+            if hasattr(valor, 'strftime'):
+                dt = valor
+            else:
+                dt = datetime.fromisoformat(str(valor).replace('Z', ''))
+            return f"{dt.day} de {MESES_PT[dt.month]} de {dt.year}"
         except Exception:
-            data_conclusao = str(data_conclusao)[:10] if data_conclusao else datetime.now().strftime('%d/%m/%Y')
+            raw = str(valor)[:10] if valor else ''
+            try:
+                partes = raw.split('-')
+                if len(partes) == 3:
+                    return f"{int(partes[2])} de {MESES_PT[int(partes[1])]} de {partes[0]}"
+            except Exception:
+                pass
+            return raw
+
+    data_conclusao = _formatar_data_pt(
+        melhor_tentativa.get('exam_date', datetime.now())
+    )
+
+    # Total de horas assistidas no módulo
+    from .database import get_user_progress
+    progresso = get_user_progress(username, topic_name)
+    topic_progress = progresso.get(topic_name, {})
+    total_segundos = sum(
+        float(v.get('duration', 0)) for v in topic_progress.values()
+    )
+    total_horas = total_segundos / 3600
 
     nota = melhor_tentativa.get('score', 0)
 
@@ -297,7 +321,8 @@ def download_certificate(topic_name):
         nota=nota,
         empresa=empresa,
         unidade=unidade,
-        cargo=cargo
+        cargo=cargo,
+        total_horas=total_horas
     )
 
     nome_arquivo = f"certificado_{topic_name.replace(' ', '_').replace('/', '-')}.pdf"
@@ -308,7 +333,7 @@ def download_certificate(topic_name):
     return response
 
 
-def _gerar_certificado_pdf(nome_aluno, topic_name, data_conclusao, nota, empresa='', unidade='', cargo=''):
+def _gerar_certificado_pdf(nome_aluno, topic_name, data_conclusao, nota, empresa='', unidade='', cargo='', total_horas=0):
     """Gera o PDF do certificado e retorna um BytesIO"""
     try:
         from reportlab.pdfgen import canvas
@@ -444,11 +469,22 @@ def _gerar_certificado_pdf(nome_aluno, topic_name, data_conclusao, nota, empresa
     c.setFont("Helvetica-Bold", topic_font)
     c.drawCentredString(center_x, PAGE_H - 11.9*cm, topic_name)
 
-    # Nota
+    # Nota e carga horária
     c.setFillColor(colors.HexColor('#86efac'))
     c.setFont("Helvetica-Bold", 13)
-    c.drawCentredString(center_x, PAGE_H - 12.9*cm,
-                        f"Nota obtida: {nota:.1f}%")
+    if total_horas and total_horas > 0:
+        horas_int = int(total_horas)
+        minutos_int = int(round((total_horas - horas_int) * 60))
+        if horas_int > 0 and minutos_int > 0:
+            carga_str = f"{horas_int}h{minutos_int:02d}min"
+        elif horas_int > 0:
+            carga_str = f"{horas_int} hora{'s' if horas_int > 1 else ''}"
+        else:
+            carga_str = f"{minutos_int} minutos"
+        nota_linha = f"Nota: {nota:.1f}%   |   Carga Horária: {carga_str}"
+    else:
+        nota_linha = f"Nota obtida: {nota:.1f}%"
+    c.drawCentredString(center_x, PAGE_H - 12.9*cm, nota_linha)
 
     # Empresa/Unidade do colaborador (se disponível)
     if empresa or unidade:
