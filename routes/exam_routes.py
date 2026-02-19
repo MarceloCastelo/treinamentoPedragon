@@ -2,13 +2,14 @@
 """
 Rotas para gerenciamento de provas
 """
-from flask import Blueprint, render_template, request, jsonify, flash, redirect, url_for
+from flask import Blueprint, render_template, request, jsonify, flash, redirect, url_for, send_file, make_response
 from .middleware import login_required, profile_complete_required, get_current_user, get_current_username
 from .database import get_exam_results, save_exam_result, get_user_exam_attempts
 from .config import VIDEOS_DIR
 import os
 import json
 from datetime import datetime
+from io import BytesIO
 
 # Criação do blueprint
 exam_bp = Blueprint('exam', __name__)
@@ -239,6 +240,243 @@ def submit_exam(topic_name):
             'success': False,
             'error': str(e)
         }), 500
+
+
+@exam_bp.route('/download-certificate/<path:topic_name>')
+@login_required
+@profile_complete_required
+def download_certificate(topic_name):
+    """Gera e retorna o certificado digital em PDF para o aluno aprovado"""
+    from .database import get_user
+
+    user = get_current_user()
+    username = get_current_username()
+
+    # Verificar se o usuário foi aprovado nesta prova
+    tentativas = get_user_exam_attempts(username, topic_name)
+    if not tentativas:
+        flash('Você ainda não realizou esta prova.', 'info')
+        return redirect(url_for('exam.exam_result', topic_name=topic_name))
+
+    # Verificar se existe alguma tentativa aprovada
+    aprovado = any(t.get('score', 0) >= 70 for t in tentativas)
+    if not aprovado:
+        flash('Você precisa ser aprovado na prova para baixar o certificado.', 'warning')
+        return redirect(url_for('exam.exam_result', topic_name=topic_name))
+
+    # Pegar a tentativa aprovada (maior nota)
+    melhor_tentativa = max(tentativas, key=lambda t: t.get('score', 0))
+
+    # Nome completo do aluno (displayName do LDAP)
+    nome_aluno = user.get('displayName', username) if user else username
+
+    # Dados adicionais do usuário no BD
+    user_db = get_user(username) or {}
+    empresa = user_db.get('empresa', '')
+    unidade = user_db.get('unidade', '')
+    cargo = user_db.get('cargo', '')
+
+    # Data de conclusão
+    data_conclusao = melhor_tentativa.get('exam_date', datetime.now().strftime('%d/%m/%Y'))
+    if hasattr(data_conclusao, 'strftime'):
+        data_conclusao = data_conclusao.strftime('%d/%m/%Y')
+    else:
+        # Tentar converter string ISO para data formatada
+        try:
+            dt = datetime.fromisoformat(str(data_conclusao).replace('Z', ''))
+            data_conclusao = dt.strftime('%d de %B de %Y')
+        except Exception:
+            data_conclusao = str(data_conclusao)[:10] if data_conclusao else datetime.now().strftime('%d/%m/%Y')
+
+    nota = melhor_tentativa.get('score', 0)
+
+    pdf_buffer = _gerar_certificado_pdf(
+        nome_aluno=nome_aluno,
+        topic_name=topic_name,
+        data_conclusao=data_conclusao,
+        nota=nota,
+        empresa=empresa,
+        unidade=unidade,
+        cargo=cargo
+    )
+
+    nome_arquivo = f"certificado_{topic_name.replace(' ', '_').replace('/', '-')}.pdf"
+
+    response = make_response(pdf_buffer.read())
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = f'attachment; filename="{nome_arquivo}"'
+    return response
+
+
+def _gerar_certificado_pdf(nome_aluno, topic_name, data_conclusao, nota, empresa='', unidade='', cargo=''):
+    """Gera o PDF do certificado e retorna um BytesIO"""
+    try:
+        from reportlab.pdfgen import canvas
+        from reportlab.lib.pagesizes import A4, landscape
+        from reportlab.lib import colors
+        from reportlab.lib.units import cm, mm
+        from reportlab.platypus import Paragraph
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.enums import TA_CENTER, TA_LEFT
+        from reportlab.pdfbase import pdfmetrics
+        from reportlab.pdfbase.ttfonts import TTFont
+    except ImportError:
+        # reportlab não instalado
+        buf = BytesIO(b"%PDF-1.4\n% reportlab nao instalado")
+        buf.seek(0)
+        return buf
+
+    # Dimensões landscape A4
+    PAGE_W, PAGE_H = landscape(A4)  # 841.89 x 595.28 pt
+
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=landscape(A4))
+
+    # ─── Fundo azul escuro ────────────────────────────────────────────────────
+    AZUL_ESCURO  = colors.HexColor('#032B56')
+    AZUL_MEDIO   = colors.HexColor('#1e40af')
+    AZUL_CLARO   = colors.HexColor('#3b82f6')
+    AZUL_BG2     = colors.HexColor('#0f3d7a')
+    BRANCO       = colors.white
+    DOURADO      = colors.HexColor('#f59e0b')
+
+    # Fundo
+    c.setFillColor(AZUL_ESCURO)
+    c.rect(0, 0, PAGE_W, PAGE_H, fill=1, stroke=0)
+
+    # Faixa decorativa lateral esquerda
+    c.setFillColor(AZUL_MEDIO)
+    c.rect(0, 0, 1.2*cm, PAGE_H, fill=1, stroke=0)
+
+    # Faixa decorativa lateral direita
+    c.rect(PAGE_W - 1.2*cm, 0, 1.2*cm, PAGE_H, fill=1, stroke=0)
+
+    # Faixa decorativa superior
+    c.rect(0, PAGE_H - 1.2*cm, PAGE_W, 1.2*cm, fill=1, stroke=0)
+
+    # Faixa decorativa inferior
+    c.rect(0, 0, PAGE_W, 1.2*cm, fill=1, stroke=0)
+
+    # Borda interna dourada
+    c.setStrokeColor(DOURADO)
+    c.setLineWidth(1.5)
+    c.rect(1.8*cm, 1.8*cm, PAGE_W - 3.6*cm, PAGE_H - 3.6*cm, fill=0, stroke=1)
+
+    # Borda pontilhada interna fina
+    c.setStrokeColor(colors.HexColor('#93c5fd'))
+    c.setLineWidth(0.5)
+    c.setDash(4, 4)
+    c.rect(2.4*cm, 2.4*cm, PAGE_W - 4.8*cm, PAGE_H - 4.8*cm, fill=0, stroke=1)
+    c.setDash()
+
+    # Ornamentos nos cantos
+    for cx, cy in [(2.2*cm, 2.2*cm), (PAGE_W - 2.2*cm, 2.2*cm),
+                   (2.2*cm, PAGE_H - 2.2*cm), (PAGE_W - 2.2*cm, PAGE_H - 2.2*cm)]:
+        c.setFillColor(DOURADO)
+        c.circle(cx, cy, 3, fill=1, stroke=0)
+
+    # ─── Logo da empresa ──────────────────────────────────────────────────────
+    logo_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        'static', 'images', 'logos', 'ADTSA - LOGOMARCA.png'
+    )
+    logo_branca_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        'static', 'images', 'logos', 'ADTSA - BRANCA.png'
+    )
+    logo_usar = logo_branca_path if os.path.exists(logo_branca_path) else logo_path
+    if os.path.exists(logo_usar):
+        try:
+            logo_w = 5.5*cm
+            logo_h = 2.0*cm
+            logo_x = (PAGE_W - logo_w) / 2
+            logo_y = PAGE_H - 4.5*cm
+            c.drawImage(logo_usar, logo_x, logo_y, width=logo_w, height=logo_h,
+                        preserveAspectRatio=True, mask='auto')
+        except Exception:
+            pass
+
+    # ─── Textos ───────────────────────────────────────────────────────────────
+    center_x = PAGE_W / 2
+
+    # "CERTIFICADO DE CONCLUSÃO"
+    c.setFillColor(DOURADO)
+    c.setFont("Helvetica-Bold", 26)
+    c.drawCentredString(center_x, PAGE_H - 6.5*cm, "CERTIFICADO DE CONCLUSÃO")
+
+    # Linha separadora dourada
+    c.setStrokeColor(DOURADO)
+    c.setLineWidth(1.2)
+    c.line(center_x - 8*cm, PAGE_H - 6.9*cm, center_x + 8*cm, PAGE_H - 6.9*cm)
+
+    # "Certificamos que"
+    c.setFillColor(colors.HexColor('#bfdbfe'))
+    c.setFont("Helvetica", 13)
+    c.drawCentredString(center_x, PAGE_H - 8.0*cm, "Certificamos que")
+
+    # Nome do aluno
+    c.setFillColor(BRANCO)
+    c.setFont("Helvetica-Bold", 24)
+    # Se o nome for muito longo, reduzir fonte
+    nome_font = 24
+    while c.stringWidth(nome_aluno, "Helvetica-Bold", nome_font) > PAGE_W - 8*cm and nome_font > 14:
+        nome_font -= 1
+    c.setFont("Helvetica-Bold", nome_font)
+    c.drawCentredString(center_x, PAGE_H - 9.5*cm, nome_aluno.upper())
+
+    # Linha sob o nome
+    c.setStrokeColor(colors.HexColor('#60a5fa'))
+    c.setLineWidth(0.8)
+    nome_w = c.stringWidth(nome_aluno.upper(), "Helvetica-Bold", nome_font)
+    c.line(center_x - nome_w/2, PAGE_H - 9.8*cm, center_x + nome_w/2, PAGE_H - 9.8*cm)
+
+    # Texto do módulo
+    c.setFillColor(colors.HexColor('#bfdbfe'))
+    c.setFont("Helvetica", 13)
+    c.drawCentredString(center_x, PAGE_H - 10.8*cm,
+                        "concluiu com aprovação o módulo de treinamento:")
+
+    # Nome do módulo
+    c.setFillColor(AZUL_CLARO)
+    topic_font = 17
+    while c.stringWidth(topic_name, "Helvetica-Bold", topic_font) > PAGE_W - 6*cm and topic_font > 11:
+        topic_font -= 1
+    c.setFont("Helvetica-Bold", topic_font)
+    c.drawCentredString(center_x, PAGE_H - 11.9*cm, topic_name)
+
+    # Nota
+    c.setFillColor(colors.HexColor('#86efac'))
+    c.setFont("Helvetica-Bold", 13)
+    c.drawCentredString(center_x, PAGE_H - 12.9*cm,
+                        f"Nota obtida: {nota:.1f}%")
+
+    # Empresa/Unidade do colaborador (se disponível)
+    if empresa or unidade:
+        info_parts = []
+        if empresa:
+            info_parts.append(empresa)
+        if unidade:
+            info_parts.append(unidade)
+        if cargo:
+            info_parts.append(cargo)
+        c.setFillColor(colors.HexColor('#94a3b8'))
+        c.setFont("Helvetica", 10)
+        c.drawCentredString(center_x, PAGE_H - 13.7*cm, " | ".join(info_parts))
+
+    # Data na parte inferior
+    c.setFillColor(colors.HexColor('#bfdbfe'))
+    c.setFont("Helvetica", 11)
+    c.drawCentredString(center_x, 3.6*cm, f"Emitido em {data_conclusao}")
+
+    # Texto institucional
+    c.setFillColor(colors.HexColor('#64748b'))
+    c.setFont("Helvetica-Oblique", 8)
+    c.drawCentredString(center_x, 2.5*cm,
+                        "GRUPO ADTSA — Divisão de Concessionárias — Plataforma de Treinamento Corporativo")
+
+    c.save()
+    buffer.seek(0)
+    return buffer
 
 
 @exam_bp.route('/exam-result/<path:topic_name>')
