@@ -125,7 +125,19 @@
                     
                     <!-- Mostrar botão apenas se existe prova para este módulo -->
                     {% if exam_exists %}
-                        {% if completion == 100 %}
+                        {% if exam_aprovado %}
+                        <!-- Aprovado: mostrar certificado e opção de rever resultado -->
+                        <a href="{{ url_for('exam.download_certificate', topic_name=topic_name) }}"
+                           class="bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-600 hover:to-yellow-500 text-white px-6 py-3 rounded-xl font-semibold transition-all flex items-center shadow-lg gap-2">
+                            <ion-icon name="ribbon-outline" class="text-xl"></ion-icon>
+                            Baixar Certificado
+                        </a>
+                        <a href="{{ url_for('exam.exam_result', topic_name=topic_name) }}"
+                           class="bg-green-500/20 hover:bg-green-500/30 border border-green-500/50 text-green-300 px-6 py-3 rounded-xl font-semibold transition-all flex items-center gap-2">
+                            <ion-icon name="checkmark-circle-outline" class="text-xl"></ion-icon>
+                            Ver Resultado
+                        </a>
+                        {% elif completion == 100 %}
                         <!-- Prova liberada -->
                         <a href="{{ url_for('exam.exam', topic_name=topic_name) }}" 
                            class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-3 rounded-xl font-semibold transition-all flex items-center shadow-lg">

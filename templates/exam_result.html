@@ -64,6 +64,14 @@
                             Voltar ao Módulo
                         </a>
                         
+                        {% if result.aprovado %}
+                        <a href="{{ url_for('exam.download_certificate', topic_name=topic_name) }}"
+                           class="bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-600 hover:to-yellow-500 text-white px-6 py-3 rounded-xl font-semibold transition-all flex items-center shadow-lg gap-2">
+                            <ion-icon name="ribbon-outline" class="text-xl"></ion-icon>
+                            Baixar Certificado
+                        </a>
+                        {% endif %}
+
                         {% if not result.aprovado and num_tentativas < max_tentativas %}
                         <a href="{{ url_for('exam.exam', topic_name=topic_name) }}" 
                            class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-xl transition-colors flex items-center">

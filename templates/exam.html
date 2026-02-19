@@ -470,6 +470,12 @@
                       <ion-icon name="lock-closed-outline" class="mr-2"></ion-icon>
                       Detalhes disponíveis após todas tentativas
                   </div>`}
+                  ${aprovado ? `
+                  <a href="/download-certificate/${encodeURIComponent(topicName)}"
+                     class="bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-600 hover:to-yellow-500 text-white px-6 py-3 rounded-xl font-semibold transition-all flex items-center shadow-lg gap-2">
+                      <ion-icon name="ribbon-outline" class="text-xl"></ion-icon>
+                      Baixar Certificado
+                  </a>` : ''}
                   ${!aprovado && (numTentativas + 1 < maxTentativas) ? `
                   <button onclick="location.reload()"
                           class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-xl transition-colors">

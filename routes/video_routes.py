@@ -512,12 +512,20 @@ def topic_detail(topic_name):
     
     # Verificar se existe arquivo de prova
     exam_exists = os.path.exists(os.path.join(topic_path, 'prova.json'))
-    
+
+    # Verificar se o usuário foi aprovado na prova deste módulo
+    exam_aprovado = False
+    if exam_exists:
+        from .database import get_user_exam_attempts
+        tentativas = get_user_exam_attempts(username, topic_name)
+        exam_aprovado = any(t.get('score', 0) >= 70 for t in tentativas)
+
     # Calcular progresso de conclusão
     completion_percentage = calculate_topic_completion(username, topic_name, len(videos))
     
     return render_template('topic_detail.html', user=user, topic_name=topic_name, videos=videos_with_status, 
-                         exam_exists=exam_exists, completion=completion_percentage)
+                         exam_exists=exam_exists, completion=completion_percentage,
+                         exam_aprovado=exam_aprovado)
 
 
 @video_bp.route('/videos/<path:filepath>')
