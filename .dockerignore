@@ -28,6 +28,8 @@ node_modules/
 package-lock.json
 # MySQL data
 mysql_data/
+# Vídeos são servidos diretamente do host via bind mount
+videos/
 # Scripts de desenvolvimento local
 scripts/dev.ps1
 scripts/backup_database.ps1

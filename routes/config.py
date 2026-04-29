@@ -4,7 +4,8 @@ Configurações centralizadas da aplicação
 import os
 
 # Diretório onde os vídeos estão armazenados
-VIDEOS_DIR = r"/app/videos"
+# Pode ser sobrescrito pela variável de ambiente VIDEOS_BASE_DIR
+VIDEOS_DIR = os.environ.get("VIDEOS_BASE_DIR", "/app/videos")
 
 # Extensões de vídeo suportadas
 VIDEO_EXTENSIONS = ['.mp4', '.webm', '.mkv', '.avi', '.mov', '.flv']

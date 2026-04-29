@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   mysql:
     image: mysql:8.0
@@ -44,11 +42,12 @@ services:
       SECRET_KEY: chave-secreta-producao-docker-2024
       FLASK_ENV: production
       BYPASS_AUTH: "0"
+      VIDEOS_BASE_DIR: /app/videos
     volumes:
       - ./static:/app/static
       - ./templates:/app/templates
       - ./routes:/app/routes
-      - ./videos:/app/videos
+      - ./videos:/app/videos:ro
     depends_on:
       mysql:
         condition: service_healthy
