@@ -1,15 +1,27 @@
 """
 Middleware e decorators para autenticação e autorização
 """
+import os
 from flask import session, redirect, url_for, flash, request
 from functools import wraps
 from .database import get_user, create_or_update_user, update_session_activity
+
+# Usuário fictício para bypass de autenticação (apenas desenvolvimento)
+_BYPASS_USER = {
+    'username': 'dev_user',
+    'display_name': 'Dev User',
+    'email': 'dev@dev.local',
+}
 
 
 def login_required(f):
     """Decorator para proteger rotas que requerem autenticação"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
+        if os.environ.get('BYPASS_AUTH') == '1':
+            if 'user' not in session:
+                session['user'] = _BYPASS_USER
+                session['is_admin'] = False
         if 'user' not in session:
             return redirect(url_for('auth.login'))
         
@@ -35,9 +47,6 @@ def profile_complete_required(f):
             
             # Se não existir ou campos obrigatórios estiverem vazios, redirecionar para o perfil
             if not user_data or not all([
-                user_data.get('empresa'),
-                user_data.get('marca'),
-                user_data.get('unidade'),
                 user_data.get('setor'),
                 user_data.get('cargo')
             ]):
@@ -54,10 +63,10 @@ def get_current_user():
 
 
 def get_current_username():
-    """Retorna o username do usuário atual (sAMAccountName)"""
+    """Retorna o username do usuário atual"""
     user_data = get_current_user()
     if user_data:
-        return user_data.get('sAMAccountName', user_data.get('displayName', ''))
+        return user_data.get('username', '')
     return None
 
 

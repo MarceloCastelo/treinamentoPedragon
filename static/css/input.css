@@ -1,3 +1,136 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ===================================================
+   TEMA CLARO - Pedragon
+   =================================================== */
+
+/* Fundo geral branco */
+.gradient-bg {
+    background: #f8fafc !important;
+}
+
+/* Todos os cards com gradiente escuro viram brancos */
+.gradient-bg .bg-gradient-to-br,
+.gradient-bg .bg-gradient-to-r,
+.gradient-bg .bg-gradient-to-r.from-blue-600\/30,
+.gradient-bg .bg-gradient-to-br.from-blue-600\/30,
+.gradient-bg .bg-gradient-to-br.from-blue-600\/20,
+.gradient-bg .bg-gradient-to-br.from-blue-500\/20,
+.gradient-bg .bg-gradient-to-br.from-indigo-600\/30,
+.gradient-bg .bg-gradient-to-br.from-cyan-600\/30,
+.gradient-bg .bg-gradient-to-br.from-purple-600\/30,
+.gradient-bg .bg-gradient-to-r.from-indigo-600\/30,
+.gradient-bg .bg-gradient-to-r.from-cyan-600\/30,
+.gradient-bg .bg-gradient-to-r.from-blue-600\/30,
+.gradient-bg .hero-gradient {
+    background: #ffffff !important;
+    background-image: none !important;
+    border-color: #e5e7eb !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.07) !important;
+}
+
+/* Hero section tom azul claro */
+.hero-gradient {
+    background: #eff6ff !important;
+    background-image: none !important;
+    border-color: #bfdbfe !important;
+    box-shadow: none !important;
+}
+
+/* Texto branco → preto/cinza escuro */
+.gradient-bg .text-white {
+    color: #111827 !important;
+}
+
+/* Subtítulos azul claro → cinza */
+.gradient-bg .text-blue-100,
+.gradient-bg .text-blue-200 {
+    color: #6b7280 !important;
+}
+
+/* Ícones + destaques → azul */
+.gradient-bg .text-blue-300,
+.gradient-bg .text-blue-400 {
+    color: #2563eb !important;
+}
+.gradient-bg .text-cyan-200,
+.gradient-bg .text-cyan-300 {
+    color: #0891b2 !important;
+}
+.gradient-bg .text-purple-200 {
+    color: #7c3aed !important;
+}
+
+/* Fundos semitransparentes brancos → cinza claro */
+.gradient-bg .bg-white\/10 {
+    background-color: #f3f4f6 !important;
+}
+.gradient-bg .bg-white\/20 {
+    background-color: #e5e7eb !important;
+}
+
+/* Bordas -> cinza */
+.gradient-bg .border-white\/20,
+.gradient-bg .border-white\/30 {
+    border-color: #d1d5db !important;
+}
+.gradient-bg .border-blue-400\/30 {
+    border-color: #93c5fd !important;
+}
+
+/* Badges amarelos */
+.gradient-bg .bg-yellow-500\/20 {
+    background-color: #fefce8 !important;
+    border-color: #fde68a !important;
+}
+.gradient-bg .text-yellow-200 {
+    color: #92400e !important;
+}
+
+/* Badges verdes / progresso */
+.gradient-bg .text-green-300 {
+    color: #15803d !important;
+}
+.gradient-bg .bg-green-500\/20,
+.gradient-bg .bg-green-500\/30 {
+    background-color: #dcfce7 !important;
+}
+
+/* Badges azuis */
+.gradient-bg .bg-blue-500\/20,
+.gradient-bg .bg-blue-500\/30 {
+    background-color: #dbeafe !important;
+}
+.gradient-bg .text-blue-200.font-semibold {
+    color: #1d4ed8 !important;
+}
+
+/* Botões fantasma ghost → claro */
+.gradient-bg a.border-white\/30,
+.gradient-bg a.bg-white\/10 {
+    background-color: #ffffff !important;
+    border-color: #d1d5db !important;
+    color: #374151 !important;
+}
+.gradient-bg a.border-white\/30:hover,
+.gradient-bg a.bg-white\/10:hover {
+    background-color: #f9fafb !important;
+}
+
+/* Footer */
+.gradient-bg + footer,
+footer.bg-blue-900\/50 {
+    background-color: #f9fafb !important;
+    background-image: none !important;
+    border-color: #e5e7eb !important;
+}
+footer .text-blue-300 {
+    color: #6b7280 !important;
+}
+
+/* Navbar do modal no profile */
+.modal-content .text-white { color: #111827 !important; }
+.modal-content .text-blue-200 { color: #6b7280 !important; }
+.modal-content .border-white\/20 { border-color: #e5e7eb !important; }

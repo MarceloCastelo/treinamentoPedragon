@@ -43,10 +43,12 @@ services:
       # Outras configurações
       SECRET_KEY: chave-secreta-producao-docker-2024
       FLASK_ENV: production
+      BYPASS_AUTH: "0"
     volumes:
       - ./static:/app/static
       - ./templates:/app/templates
-      - C:\Users\adtsa\Videos\Treinamento - Dealernet:/app/videos
+      - ./routes:/app/routes
+      - ./videos:/app/videos
     depends_on:
       mysql:
         condition: service_healthy
@@ -58,7 +60,7 @@ services:
     container_name: treinamento_adtsa_nginx
     restart: always
     ports:
-      - "80:80"
+      - "8081:80"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./static:/app/static:ro

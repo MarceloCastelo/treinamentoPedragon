@@ -1,0 +1,274 @@
+/* ===================================================
+   TEMA CLARO - PEDRAGON
+   Carregado após output.css, sobrescreve cores escuras
+   =================================================== */
+
+/* ---- FUNDO GERAL ---- */
+.gradient-bg {
+    background: #f8fafc !important;
+    background-image: none !important;
+}
+
+/* ---- CARDS / CONTAINERS ---- */
+/* Todos os divs com gradiente tornam-se brancos */
+.gradient-bg div[class*="bg-gradient-to"],
+.gradient-bg section div[class*="bg-gradient-to"] {
+    background-image: none !important;
+    background-color: #ffffff !important;
+    border-color: #e5e7eb !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07) !important;
+}
+
+/* Hero section: fundo azul bem clarinho */
+.hero-gradient {
+    background-image: none !important;
+    background-color: #eff6ff !important;
+    border-color: #bfdbfe !important;
+    box-shadow: none !important;
+}
+
+/* ---- TEXTOS ---- */
+/* Texto branco principal → preto */
+.gradient-bg h1,
+.gradient-bg h2,
+.gradient-bg h3,
+.gradient-bg h4,
+.gradient-bg p,
+.gradient-bg span:not([class*="bg-"]):not([class*="text-green"]):not([class*="text-red"]):not([class*="text-yellow"]),
+.gradient-bg div > .text-white,
+.gradient-bg .text-white {
+    color: #111827 !important;
+}
+
+/* Subtítulos azul claro → cinza */
+.gradient-bg .text-blue-200,
+.gradient-bg .text-blue-100 {
+    color: #6b7280 !important;
+}
+
+/* Ícones e destaques → azul vibrante */
+.gradient-bg .text-blue-300,
+.gradient-bg .text-blue-400 {
+    color: #2563eb !important;
+}
+
+.gradient-bg .text-cyan-200,
+.gradient-bg .text-cyan-300 {
+    color: #0891b2 !important;
+}
+
+.gradient-bg .text-purple-200 {
+    color: #7c3aed !important;
+}
+
+.gradient-bg .text-yellow-300 {
+    color: #d97706 !important;
+}
+
+/* Badges / pills: manter cores mas clarear fundo */
+.gradient-bg .text-green-200,
+.gradient-bg .text-green-300 {
+    color: #15803d !important;
+}
+
+.gradient-bg .text-yellow-200 {
+    color: #b45309 !important;
+}
+
+/* ---- FUNDOS SEMI-TRANSPARENTES ---- */
+.gradient-bg .bg-white\/5,
+.gradient-bg .bg-white\/10 {
+    background-color: #f3f4f6 !important;
+    background-image: none !important;
+}
+
+.gradient-bg .bg-white\/20 {
+    background-color: #e5e7eb !important;
+    background-image: none !important;
+}
+
+/* ---- BORDAS ---- */
+.gradient-bg .border-white\/10,
+.gradient-bg .border-white\/20,
+.gradient-bg .border-white\/30 {
+    border-color: #d1d5db !important;
+}
+
+.gradient-bg .border-blue-400\/30 {
+    border-color: #93c5fd !important;
+}
+
+/* ---- BADGES COLORIDOS (clarear fundos) ---- */
+.gradient-bg .bg-yellow-500\/20 {
+    background-color: #fefce8 !important;
+    background-image: none !important;
+    border-color: #fde68a !important;
+}
+
+.gradient-bg .bg-green-500\/20,
+.gradient-bg .bg-green-500\/30 {
+    background-color: #dcfce7 !important;
+    background-image: none !important;
+}
+
+.gradient-bg .bg-blue-500\/20,
+.gradient-bg .bg-blue-500\/30 {
+    background-color: #dbeafe !important;
+    background-image: none !important;
+}
+
+.gradient-bg .bg-yellow-500\/30 {
+    background-color: #fef9c3 !important;
+    background-image: none !important;
+}
+
+.gradient-bg .bg-orange-500\/20 {
+    background-color: #fff7ed !important;
+    background-image: none !important;
+}
+
+/* ---- LINKS GHOST (bg-white/10 com border) ---- */
+.gradient-bg a[class*="border-white"],
+.gradient-bg a[class*="bg-white\/"] {
+    background-color: #ffffff !important;
+    background-image: none !important;
+    border-color: #d1d5db !important;
+    color: #374151 !important;
+}
+
+.gradient-bg a[class*="border-white"]:hover,
+.gradient-bg a[class*="bg-white\/"]:hover {
+    background-color: #f9fafb !important;
+}
+
+/* ---- BOTÕES (manter azul) ---- */
+.gradient-bg a[class*="bg-blue-6"],
+.gradient-bg a[class*="bg-blue-5"],
+.gradient-bg button[class*="bg-blue"],
+a[class*="bg-blue-6"],
+a[class*="bg-blue-5"] {
+    color: #ffffff !important;
+}
+
+/* ---- BARRA DE PROGRESSO (manter) ---- */
+.gradient-bg .bg-gradient-to-r.from-green-400,
+.gradient-bg .bg-gradient-to-r.from-blue-400,
+.gradient-bg div.progress-bar {
+    background-image: linear-gradient(to right, #4ade80, #10b981) !important;
+}
+
+/* ---- FOOTER ---- */
+footer {
+    background-color: #f9fafb !important;
+    background-image: none !important;
+    border-top-color: #e5e7eb !important;
+}
+
+footer p,
+footer .text-blue-300 {
+    color: #6b7280 !important;
+}
+
+/* ---- MODAL DO PERFIL ---- */
+.modal-content {
+    background: #ffffff !important;
+    background-image: none !important;
+    border-color: #e5e7eb !important;
+}
+
+.modal-content .text-white,
+.modal-content h1,
+.modal-content h2,
+.modal-content h3 {
+    color: #111827 !important;
+}
+
+.modal-content .text-blue-200 {
+    color: #6b7280 !important;
+}
+
+.modal-content .border-white\/20 {
+    border-color: #e5e7eb !important;
+}
+
+.modal-content input,
+.modal-content select,
+.modal-content textarea {
+    background-color: #f9fafb !important;
+    border-color: #d1d5db !important;
+    color: #111827 !important;
+}
+
+/* ---- TOAST / NOTIFICAÇÕES ---- */
+.gradient-bg .backdrop-blur-sm {
+    backdrop-filter: none !important;
+}
+
+/* ---- NAVBAR - exceção permanente do tema claro ---- */
+/* O navbar deve sempre ter fundo preto e textos brancos */
+#navbar-container nav {
+    background-color: #000000 !important;
+    background-image: none !important;
+}
+
+#navbar-container nav h1,
+#navbar-container nav h2,
+#navbar-container nav h3,
+#navbar-container nav h4,
+#navbar-container nav p,
+#navbar-container nav span,
+#navbar-container nav a,
+#navbar-container nav button,
+#navbar-container .text-white {
+    color: #ffffff !important;
+}
+
+/* Link/item ativo e hover: azul */
+#navbar-container .text-blue-400,
+#navbar-container nav a.bg-gray-800,
+#navbar-container nav a.text-blue-400 {
+    color: #60a5fa !important;
+}
+
+/* Dropdown menu fundo preto */
+#navbar-container nav .absolute {
+    background-color: #000000 !important;
+    border-color: #374151 !important;
+}
+
+#navbar-container nav .absolute a {
+    color: #ffffff !important;
+}
+
+#navbar-container nav .absolute a:hover {
+    background-color: #1f2937 !important;
+    color: #60a5fa !important;
+}
+
+/* Hover nos links da navbar */
+#navbar-container nav a:hover,
+#navbar-container nav button:hover {
+    color: #60a5fa !important;
+    background-color: #1f2937 !important;
+}
+
+/* Item da página atual (active) */
+#navbar-container nav a.bg-gray-800 {
+    background-color: #1f2937 !important;
+    color: #60a5fa !important;
+}
+
+/* Mobile menu */
+#navbar-container #navbar-mobile-menu {
+    background-color: #000000 !important;
+    border-color: #1f2937 !important;
+}
+
+#navbar-container #navbar-mobile-menu a,
+#navbar-container #navbar-mobile-menu .text-gray-500 {
+    color: #ffffff !important;
+}
+
+#navbar-container #navbar-mobile-menu .text-gray-500 {
+    color: #9ca3af !important;
+}

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from flask import Flask, render_template, redirect, url_for
 from dotenv import load_dotenv
+from datetime import timedelta
 import os
 import sys
 import logging
@@ -45,6 +46,11 @@ def create_app():
 
     # Configura chave secreta
     app.secret_key = os.environ.get('SECRET_KEY', 'chave-secreta-desenvolvimento-123')
+
+    # Mantém sessão ativa por 8 horas de uso
+    app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=8)
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
     # Configura logging
     configure_logging()

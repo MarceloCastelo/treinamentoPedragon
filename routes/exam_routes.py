@@ -267,8 +267,8 @@ def download_certificate(topic_name):
     # Pegar a tentativa aprovada (maior nota)
     melhor_tentativa = max(tentativas, key=lambda t: t.get('score', 0))
 
-    # Nome completo do aluno (displayName do LDAP)
-    nome_aluno = user.get('displayName', username) if user else username
+    # Nome completo do aluno
+    nome_aluno = user.get('display_name', user.get('displayName', username)) if user else username
 
     # Dados adicionais do usuário no BD
     user_db = get_user(username) or {}
@@ -357,63 +357,48 @@ def _gerar_certificado_pdf(nome_aluno, topic_name, data_conclusao, nota, empresa
     buffer = BytesIO()
     c = canvas.Canvas(buffer, pagesize=landscape(A4))
 
-    # ─── Fundo azul escuro ────────────────────────────────────────────────────
-    AZUL_ESCURO  = colors.HexColor('#032B56')
-    AZUL_MEDIO   = colors.HexColor('#1e40af')
-    AZUL_CLARO   = colors.HexColor('#3b82f6')
-    AZUL_BG2     = colors.HexColor('#0f3d7a')
+    # ─── Paleta de cores ──────────────────────────────────────────────────────
     BRANCO       = colors.white
-    DOURADO      = colors.HexColor('#f59e0b')
+    AZUL         = colors.HexColor('#0d2d6e')   # azul único para borda e textos
+    DOURADO      = colors.HexColor('#b8972a')   # dourado para detalhes mínimos
+    CINZA_TEXTO  = colors.HexColor('#1e293b')   # texto corrido escuro
+    CINZA_LEVE   = colors.HexColor('#64748b')   # texto secundário
 
-    # Fundo
-    c.setFillColor(AZUL_ESCURO)
+    # ─── Fundo totalmente branco ──────────────────────────────────────────────
+    c.setFillColor(BRANCO)
     c.rect(0, 0, PAGE_W, PAGE_H, fill=1, stroke=0)
 
-    # Faixa decorativa lateral esquerda
-    c.setFillColor(AZUL_MEDIO)
-    c.rect(0, 0, 1.2*cm, PAGE_H, fill=1, stroke=0)
+    # Borda azul sólida que dá a volta
+    c.setStrokeColor(AZUL)
+    c.setLineWidth(3)
+    c.rect(0.7*cm, 0.7*cm, PAGE_W - 1.4*cm, PAGE_H - 1.4*cm, fill=0, stroke=1)
 
-    # Faixa decorativa lateral direita
-    c.rect(PAGE_W - 1.2*cm, 0, 1.2*cm, PAGE_H, fill=1, stroke=0)
-
-    # Faixa decorativa superior
-    c.rect(0, PAGE_H - 1.2*cm, PAGE_W, 1.2*cm, fill=1, stroke=0)
-
-    # Faixa decorativa inferior
-    c.rect(0, 0, PAGE_W, 1.2*cm, fill=1, stroke=0)
-
-    # Borda interna dourada
+    # Borda interna dourada fina pontilhada (detalhe discreto)
     c.setStrokeColor(DOURADO)
-    c.setLineWidth(1.5)
-    c.rect(1.8*cm, 1.8*cm, PAGE_W - 3.6*cm, PAGE_H - 3.6*cm, fill=0, stroke=1)
-
-    # Borda pontilhada interna fina
-    c.setStrokeColor(colors.HexColor('#93c5fd'))
     c.setLineWidth(0.5)
     c.setDash(4, 4)
-    c.rect(2.4*cm, 2.4*cm, PAGE_W - 4.8*cm, PAGE_H - 4.8*cm, fill=0, stroke=1)
+    c.rect(1.2*cm, 1.2*cm, PAGE_W - 2.4*cm, PAGE_H - 2.4*cm, fill=0, stroke=1)
     c.setDash()
 
-    # Ornamentos nos cantos
-    for cx, cy in [(2.2*cm, 2.2*cm), (PAGE_W - 2.2*cm, 2.2*cm),
-                   (2.2*cm, PAGE_H - 2.2*cm), (PAGE_W - 2.2*cm, PAGE_H - 2.2*cm)]:
+    # Ornamentos dourados nos quatro cantos
+    for cx, cy in [(1.2*cm, 1.2*cm), (PAGE_W - 1.2*cm, 1.2*cm),
+                   (1.2*cm, PAGE_H - 1.2*cm), (PAGE_W - 1.2*cm, PAGE_H - 1.2*cm)]:
         c.setFillColor(DOURADO)
-        c.circle(cx, cy, 3, fill=1, stroke=0)
+        p = c.beginPath()
+        p.moveTo(cx, cy + 5)
+        p.lineTo(cx + 5, cy)
+        p.lineTo(cx, cy - 5)
+        p.lineTo(cx - 5, cy)
+        p.close()
+        c.drawPath(p, fill=1, stroke=0)
 
-    # ─── Logo da empresa ──────────────────────────────────────────────────────
-    logo_path = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-        'static', 'images', 'logos', 'ADTSA - LOGOMARCA.png'
-    )
-    logo_branca_path = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-        'static', 'images', 'logos', 'ADTSA - BRANCA.png'
-    )
-    logo_usar = logo_branca_path if os.path.exists(logo_branca_path) else logo_path
+    # ─── Logo preta centralizada no topo ─────────────────────────────────────
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    logo_usar = os.path.join(base_dir, 'static', 'images', 'logos', 'pedragon2_preta.png')
     if os.path.exists(logo_usar):
         try:
-            logo_w = 5.5*cm
-            logo_h = 2.0*cm
+            logo_w = 6.5*cm
+            logo_h = 2.8*cm
             logo_x = (PAGE_W - logo_w) / 2
             logo_y = PAGE_H - 4.5*cm
             c.drawImage(logo_usar, logo_x, logo_y, width=logo_w, height=logo_h,
@@ -425,53 +410,52 @@ def _gerar_certificado_pdf(nome_aluno, topic_name, data_conclusao, nota, empresa
     center_x = PAGE_W / 2
 
     # "CERTIFICADO DE CONCLUSÃO"
-    c.setFillColor(DOURADO)
-    c.setFont("Helvetica-Bold", 26)
-    c.drawCentredString(center_x, PAGE_H - 6.5*cm, "CERTIFICADO DE CONCLUSÃO")
+    c.setFillColor(AZUL)
+    c.setFont("Helvetica-Bold", 28)
+    c.drawCentredString(center_x, PAGE_H - 6.0*cm, "CERTIFICADO DE CONCLUSÃO")
 
-    # Linha separadora dourada
-    c.setStrokeColor(DOURADO)
-    c.setLineWidth(1.2)
-    c.line(center_x - 8*cm, PAGE_H - 6.9*cm, center_x + 8*cm, PAGE_H - 6.9*cm)
+    # Linha separadora azul com pontinho dourado central
+    c.setStrokeColor(AZUL)
+    c.setLineWidth(0.8)
+    c.line(center_x - 9*cm, PAGE_H - 6.5*cm, center_x - 0.5*cm, PAGE_H - 6.5*cm)
+    c.line(center_x + 0.5*cm, PAGE_H - 6.5*cm, center_x + 9*cm, PAGE_H - 6.5*cm)
+    c.setFillColor(DOURADO)
+    c.circle(center_x, PAGE_H - 6.5*cm, 3, fill=1, stroke=0)
 
     # "Certificamos que"
-    c.setFillColor(colors.HexColor('#bfdbfe'))
+    c.setFillColor(CINZA_TEXTO)
     c.setFont("Helvetica", 13)
-    c.drawCentredString(center_x, PAGE_H - 8.0*cm, "Certificamos que")
+    c.drawCentredString(center_x, PAGE_H - 7.6*cm, "Certificamos que")
 
     # Nome do aluno
-    c.setFillColor(BRANCO)
-    c.setFont("Helvetica-Bold", 24)
-    # Se o nome for muito longo, reduzir fonte
-    nome_font = 24
-    while c.stringWidth(nome_aluno, "Helvetica-Bold", nome_font) > PAGE_W - 8*cm and nome_font > 14:
+    nome_font = 26
+    while c.stringWidth(nome_aluno.upper(), "Helvetica-Bold", nome_font) > PAGE_W - 7*cm and nome_font > 14:
         nome_font -= 1
+    c.setFillColor(AZUL)
     c.setFont("Helvetica-Bold", nome_font)
-    c.drawCentredString(center_x, PAGE_H - 9.5*cm, nome_aluno.upper())
+    c.drawCentredString(center_x, PAGE_H - 9.0*cm, nome_aluno.upper())
 
-    # Linha sob o nome
-    c.setStrokeColor(colors.HexColor('#60a5fa'))
-    c.setLineWidth(0.8)
+    # Linha sob o nome (dourada)
     nome_w = c.stringWidth(nome_aluno.upper(), "Helvetica-Bold", nome_font)
-    c.line(center_x - nome_w/2, PAGE_H - 9.8*cm, center_x + nome_w/2, PAGE_H - 9.8*cm)
+    c.setStrokeColor(DOURADO)
+    c.setLineWidth(1.0)
+    c.line(center_x - nome_w/2, PAGE_H - 9.3*cm, center_x + nome_w/2, PAGE_H - 9.3*cm)
 
     # Texto do módulo
-    c.setFillColor(colors.HexColor('#bfdbfe'))
+    c.setFillColor(CINZA_TEXTO)
     c.setFont("Helvetica", 13)
-    c.drawCentredString(center_x, PAGE_H - 10.8*cm,
+    c.drawCentredString(center_x, PAGE_H - 10.4*cm,
                         "concluiu com aprovação o módulo de treinamento:")
 
     # Nome do módulo
-    c.setFillColor(AZUL_CLARO)
-    topic_font = 17
+    topic_font = 18
     while c.stringWidth(topic_name, "Helvetica-Bold", topic_font) > PAGE_W - 6*cm and topic_font > 11:
         topic_font -= 1
+    c.setFillColor(AZUL)
     c.setFont("Helvetica-Bold", topic_font)
-    c.drawCentredString(center_x, PAGE_H - 11.9*cm, topic_name)
+    c.drawCentredString(center_x, PAGE_H - 11.5*cm, topic_name)
 
     # Nota e carga horária
-    c.setFillColor(colors.HexColor('#86efac'))
-    c.setFont("Helvetica-Bold", 13)
     if total_horas and total_horas > 0:
         horas_int = int(total_horas)
         minutos_int = int(round((total_horas - horas_int) * 60))
@@ -484,7 +468,9 @@ def _gerar_certificado_pdf(nome_aluno, topic_name, data_conclusao, nota, empresa
         nota_linha = f"Nota: {nota:.1f}%   |   Carga Horária: {carga_str}"
     else:
         nota_linha = f"Nota obtida: {nota:.1f}%"
-    c.drawCentredString(center_x, PAGE_H - 12.9*cm, nota_linha)
+    c.setFillColor(CINZA_TEXTO)
+    c.setFont("Helvetica-Bold", 13)
+    c.drawCentredString(center_x, PAGE_H - 12.5*cm, nota_linha)
 
     # Empresa/Unidade do colaborador (se disponível)
     if empresa or unidade:
@@ -495,20 +481,14 @@ def _gerar_certificado_pdf(nome_aluno, topic_name, data_conclusao, nota, empresa
             info_parts.append(unidade)
         if cargo:
             info_parts.append(cargo)
-        c.setFillColor(colors.HexColor('#94a3b8'))
+        c.setFillColor(CINZA_LEVE)
         c.setFont("Helvetica", 10)
-        c.drawCentredString(center_x, PAGE_H - 13.7*cm, " | ".join(info_parts))
+        c.drawCentredString(center_x, PAGE_H - 13.3*cm, " | ".join(info_parts))
 
-    # Data na parte inferior
-    c.setFillColor(colors.HexColor('#bfdbfe'))
-    c.setFont("Helvetica", 11)
-    c.drawCentredString(center_x, 3.6*cm, f"Emitido em {data_conclusao}")
-
-    # Texto institucional
-    c.setFillColor(colors.HexColor('#64748b'))
-    c.setFont("Helvetica-Oblique", 8)
-    c.drawCentredString(center_x, 2.5*cm,
-                        "GRUPO ADTSA — Divisão de Concessionárias — Plataforma de Treinamento Corporativo")
+    # Data e texto institucional na base (fundo branco, texto cinza discreto)
+    c.setFillColor(CINZA_LEVE)
+    c.setFont("Helvetica", 9)
+    c.drawCentredString(center_x, 1.3*cm, f"Emitido em {data_conclusao}   —   GRUPO ADTSA · Divisão de Concessionárias · Plataforma de Treinamento Corporativo")
 
     c.save()
     buffer.seek(0)

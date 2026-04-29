@@ -69,3 +69,9 @@ desktop.ini
 
 # Docker volumes
 mysql_data/
+
+# Videos (arquivos grandes, não versionar)
+videos/
+
+# Backups
+backups/

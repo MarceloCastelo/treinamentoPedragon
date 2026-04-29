@@ -189,6 +189,45 @@ def update_profile_picture(username, filename):
     return execute_query(query, {'username': username, 'filename': filename}, fetch_all=False)
 
 
+# ============= FUNÇÕES DE AUTENTICAÇÃO LOCAL =============
+
+def get_user_by_email(email):
+    """Obtém um usuário pelo e-mail"""
+    query = "SELECT * FROM users WHERE email = :email"
+    return execute_query(query, {'email': email}, fetch_one=True)
+
+
+def get_user_by_cpf(cpf):
+    """Obtém um usuário pelo CPF (apenas dígitos)"""
+    cpf_clean = ''.join(filter(str.isdigit, cpf))
+    query = "SELECT * FROM users WHERE REGEXP_REPLACE(cpf, '[^0-9]', '') = :cpf"
+    return execute_query(query, {'cpf': cpf_clean}, fetch_one=True)
+
+
+def create_local_user(username, email, display_name, password_hash, cpf=None):
+    """Cria um novo usuário com autenticação local"""
+    query = """
+        INSERT INTO users (username, email, display_name, password_hash, cpf)
+        VALUES (:username, :email, :display_name, :password_hash, :cpf)
+    """
+    return execute_query(query, {
+        'username': username,
+        'email': email,
+        'display_name': display_name,
+        'password_hash': password_hash,
+        'cpf': cpf
+    }, fetch_all=False)
+
+
+def update_user_password(username, password_hash):
+    """Atualiza o hash de senha de um usuário"""
+    query = """
+        UPDATE users SET password_hash = :password_hash, updated_at = CURRENT_TIMESTAMP
+        WHERE username = :username
+    """
+    return execute_query(query, {'username': username, 'password_hash': password_hash}, fetch_all=False)
+
+
 # ============= FUNÇÕES PARA PROGRESSO DE VÍDEOS =============
 
 def get_user_progress(username, topic=None):

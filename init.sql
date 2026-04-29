@@ -7,6 +7,10 @@ CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(100) UNIQUE NOT NULL,
     email VARCHAR(255),
+    password_hash VARCHAR(255),
+    display_name VARCHAR(200),
+    cpf VARCHAR(14) UNIQUE NULL COMMENT 'CPF no formato 000.000.000-00',
+    is_admin TINYINT(1) NOT NULL DEFAULT 0,
     phone VARCHAR(20),
     department VARCHAR(100),
     position VARCHAR(100),
@@ -19,7 +23,8 @@ CREATE TABLE IF NOT EXISTS users (
     profile_picture VARCHAR(255) NULL DEFAULT NULL COMMENT 'Caminho relativo da foto de perfil',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_username (username)
+    INDEX idx_username (username),
+    INDEX idx_cpf (cpf)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Tabela de progresso de vídeos
