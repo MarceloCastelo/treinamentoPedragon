@@ -23,8 +23,9 @@ tests/
 htmlcov/
 .DS_Store
 Thumbs.db
-# Node modules (será instalado no container)
+# Node modules e arquivos de build (CSS é pré-compilado localmente)
 node_modules/
+package.json
 package-lock.json
 # MySQL data
 mysql_data/
