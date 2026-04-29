@@ -25,6 +25,8 @@ wheels/
 venv/
 ENV/
 env/
+.env
+.env/
 
 # Node modules e dependências npm
 node_modules/
